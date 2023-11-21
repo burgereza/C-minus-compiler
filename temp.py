@@ -1,6 +1,12 @@
-with open('input.txt', 'r') as f:
-        lines = f.readlines()
+input = open('input.txt','r')
+lines = input.readlines()
 
-print(lines[20])
+x=lines[0][0]
+
+print(X.isdigit())
 
 
+#if x == '\n':
+#    print('TRUE')
+#else:
+#    print('false')
