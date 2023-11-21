@@ -1,5 +1,5 @@
 SYMBOL = [';', ':', ',', '[', ']', '(', ')', '{', '}', '+', '-', '*', '=','==', '<', '/' ]
-KEYWORD = ["if", "else", "void", "int", "while", "break","return"]
+KEYWORDS = ["if", "else", "void", "int", "while", "break","return"]
 WHITESPACE=[' ', '\t', '\n', '\r', '\v', '\f']
 
 
@@ -16,7 +16,7 @@ def get_type(token):
        elif token in WHITESPACE:
           return 'WHITESPACE'
        else :
-          return 'UNKOWN'
+          return 'UNKNOWN'
 
 
 
@@ -53,7 +53,7 @@ class scanner:
             char_type , current_char = self.update_char()
             if char_type == 'WHITESPACE' or char_type == 'SYMBOL':
                #end of number
-               return 'NUM',token_string
+               return 'NUM',token_string, ''
             elif char_type != 'NUM':
                #lexical error
                while True:
@@ -62,12 +62,26 @@ class scanner:
                      break
                   token_string += current_char
                   self.cursor += 1  
-               return 'LEXI',token_string
+               return 'NUM',token_string ,'INVALID INPUT'
             token_string += current_char
             #print(token_string)
 
        #get id or keyword
        elif char_type == 'ID_OR_KEYWORD':
+          #print('@@@@@@@ get id or keyword @@@@@@@')
+          while True:
+            self.cursor += 1
+            char_type , current_char = self.update_char()
+            if char_type == 'WHITESPACE':
+               #end of identifier
+               if token_string in KEYWORDS:
+                  return 'KEYWORD', token_string, ''
+               return 'ID', token_string
+            elif char_type == 'SYMBOL' or char_type == 'UNKNOWN':
+               #lexical error
+               return 'ID', token_string, 'INVALID INPUT'
+            token_string += current_char
+            #print(token_string)
           return
           
        
@@ -113,11 +127,12 @@ class scanner:
     def run(self):
        index = 0
        while True:
-          token_type , token = self.get_next_token()
+          token_type , token , Error = self.get_next_token()
           if token == None:
+             #EOF reached
              self.print_outputs() 
              break
-          #print(token+'_________'+str(self.line_number)+'__________'+ str(self.cursor)+'_____________'+str(self.lines[self.line_number][(len(self.lines[self.line_number])-1)]))
+          #print(token+'_____'+str(self.line_number)+'_____'+ str(self.cursor)+'_____'+str(self.lines[self.line_number][(len(self.lines[self.line_number])-1)]))
           if index == 20:
              break
           index += 1
