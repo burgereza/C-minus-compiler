@@ -1,18 +1,16 @@
-123
-void main (void) {
-int a = 0;
-/* comment1*/
-a = 2 + 2;
-a = a - 3;
-cde = a;
-if (b /* comment2 */ == 3d) {
-a = 3;
-cd!e = 7;
-}
-else */
-{
-b = a < cde;
-{cde = @2;
-}}
-return; /* comment 3
-}
+vod min(voi$$){
+	if (arr[efg] == TT%^&*){
+			b = b + 1;}
+		if(arr[efg] === 3)
+			b = b + 2;
+			return;
+		else (arr[ef%g] // arr)
+		{
+			x = 5;
+			b = u * 123;
+			break;}
+		else
+			b = b - 1;
+	}
+	return;
+}129
