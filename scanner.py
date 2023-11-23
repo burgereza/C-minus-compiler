@@ -9,10 +9,10 @@ def get_type(token):
           return 'NUM'
        elif token.isalnum():
           return 'ID_OR_KEYWORD'
+       elif token == '/':
+          return 'COMMENT'
        elif token in SYMBOL:
           return 'SYMBOL'
-       elif token == '/*':
-          return 'COMMENT'
        elif token in WHITESPACE:
           return 'WHITESPACE'
        else :
@@ -36,14 +36,15 @@ class scanner:
        char_type,current_char = self.update_char()
        token_string += current_char
        #print(str(char_type) + ' ------------ ' + current_char)
-       #handle whitespace
+
+       #get whitespace
        if char_type == 'WHITESPACE':
-         #print('@@@@@@@ handle whitespace @@@@@@@')
-         if current_char == '\n':
-            self.line_number += 1
-            self.cursor = 0
-         else:
-            self.cursor += 1
+          #print('@@@@@@@  get whitespace  @@@@@@@')
+          if current_char == '\n':
+             self.line_number += 1
+             self.cursor = 0
+          else:
+             self.cursor += 1
 
        #get number
        elif char_type == 'NUM':
@@ -56,13 +57,15 @@ class scanner:
                return 'NUM',token_string, ''
             elif char_type != 'NUM':
                #lexical error
-               while True:
-                  char_type , current_char = self.update_char()
-                  if char_type == 'WHITESPACE' or char_type == 'SYMBOL':
-                     break
+               flag = True
+               if char_type == 'UNKOWN':
                   token_string += current_char
-                  self.cursor += 1  
-               return 'NUM',token_string ,'INVALID INPUT'
+                  self.cursor += 1
+                  flag = False
+               if flag:  
+                  return 'Error',token_string ,'Invalid number'
+               else:
+                  return 'Error',token_string ,'Invalid input'
             token_string += current_char
             #print(token_string)
 
@@ -72,51 +75,68 @@ class scanner:
           while True:
             self.cursor += 1
             char_type , current_char = self.update_char()
-            if char_type == 'WHITESPACE':
+            if char_type == 'WHITESPACE' or char_type == 'SYMBOL':
                #end of identifier
                if token_string in KEYWORDS:
                   return 'KEYWORD', token_string, ''
-               return 'ID', token_string
-            elif char_type == 'SYMBOL' or char_type == 'UNKNOWN':
+               return 'ID', token_string , ''
+            elif char_type == 'UNKNOWN':
                #lexical error
-               return 'ID', token_string, 'INVALID INPUT'
+               return 'Error', token_string, 'INVALID INPUT'
             token_string += current_char
             #print(token_string)
           return
-          
        
        #get symbol
        elif char_type == 'SYMBOL':
           #print('@@@@@@@    get SYMBOL    @@@@@@@')
-          while True:
+         if current_char == '=':
             self.cursor += 1
             char_type , current_char = self.update_char()
-            if char_type == 'WHITESPACE' or char_type == 'ID_OR_KEYWORD' or char_type == 'NUM':
-               #end of SYMBOL
-               return 'SYMBOL',token_string
+            if char_type == 'SYMBOL' and current_char == '=':
+               token_string += current_char
+               self.cursor += 1
+               return 'SYMBOL', token_string, ''
             elif char_type == 'UNKOWN':
                #lexical error
-               while True:
-                  char_type , current_char = self.update_char()
-                  if char_type == 'WHITESPACE' or char_type == 'ID_OR_KEYWORD' or char_type == 'NUM':
-                     break
-                  token_string += current_char
-                  self.cursor += 1
-                  
-               return 'LEXI',token_string
-            
-            
-            token_string += current_char
+               return 'Error',token_string ,'INVALID INPUT'
+            else:
+               return 'SYMBOL', token_string, ''
             #print(token_string)
-       
+      
       
       #get comment
        elif char_type == 'COMMENT':
+          self.cursor += 1
+          char_type , current_char = self.update_char()
+          if current_char != '*':
+             return 'SYMBOL', '/', ''
+          else:
+             #comment started
+             while True:
+                self.cursor += 1
+                char_type , current_char = self.update_char()
+                if current_char == None:
+                   #Error
+                   return 'Error', token_string, 'Unclosed comment'
+                if current_char == '*':
+                   self.cursor += 1
+                   char_type , current_char = self.update_char()
+                   if current_char == '/':
+                      return 'COMMENT', '/*' + token_string + '*/', ''
+                   else: 
+                      current_char = '*'
+                      self.cursor -= 1
+                token_string += current_char
           return
-           
-
+       
+       
+      #get unkown
+       elif char_type == 'UNKOWN':
+          self.cursor += 1
+          return 'Error',token_string ,'INVALID INPUT'
        #print(token_string + '\n')
-       return token_type , token_string
+       #return token_type , token_string
     
 
     def update_char(self):
