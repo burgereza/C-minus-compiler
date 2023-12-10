@@ -107,8 +107,10 @@ class scanner:
       self.line_number = 0
       self.cursor = 0
       self.end = True
+      self.unclosed_comm = False
       
-
+    def find_comment (self):
+       return
    
    
     def get_next_token(self):
@@ -151,6 +153,7 @@ class scanner:
                   flag = False
                if flag:
                   token_string += current_char 
+                  self.cursor += 1
                   return 'Error',token_string ,'Invalid number'
                else:
                   token_string += current_char
@@ -183,22 +186,39 @@ class scanner:
           print('@@@@@@@    get COMMENT    @@@@@@@')
           self.cursor += 1
           char_type , current_char = self.update_char()
-          if current_char != '*':
-             print("*********")
+          if char_type == 'UNKONWN':
+             token_string += current_char 
+             return 'ERROR', token_string, 'Invalid input'
+          elif current_char != '*':
              print(current_char)
              return 'SYMBOL', '/', ''
           else:
-             unc_comm_cursor , unc_comm_line = self.cursor , self.line_number
+             temp = []
+             comm_cursor , comm_line = self.cursor , self.line_number
              #comment started
              while True:
                 self.cursor += 1
                 char_type , current_char = self.update_char()
-                if current_char == None:
-                   #Error
-                   self.cursor = unc_comm_cursor + 2
-                   self.line_number = unc_comm_line + 2
-                   return 'Error', token_string, 'Unclosed comment'
-                if current_char == '*':
+                print(str(current_char))
+
+                #next line:
+                if current_char == '\n':
+                   self.line_number += 1
+                   self.cursor = -1
+
+                #Unclosed comment:
+                elif self.line_number == len(self.lines)-1 :
+                   self.cursor = comm_cursor + 2
+                   self.line_number = comm_line
+                   if self.unclosed_comm == True:
+                      return '','',''
+                   else:
+                     self.unclosed_comm = True
+                     return 'Error', "/*" + token_string[1:5] + " ..." , 'Unclosed comment'
+                   
+                
+                #end of comment:
+                elif current_char == '*':
                    self.cursor += 1
                    char_type , current_char = self.update_char()
                    if current_char == '/':
@@ -206,8 +226,9 @@ class scanner:
                       return 'COMMENT', '/*' + token_string + '*/', ''
                    else:
                       current_char = '*'
-                      self.cursor += 1
-                #token_string += current_char
+                      self.cursor -= 1
+                if char_type != "WHITESPACE":
+                  token_string += current_char
           return
 
        #get symbol
@@ -225,7 +246,7 @@ class scanner:
          elif token_string == '*' and current_char == '/':
             self.cursor += 1
             return 'Error','*/' ,'Unmatched comment'
-         elif char_type == 'UNKNOWN':
+         elif char_type == 'UNKNOWN' and (token_string == '=' or token_string == '*' or token_string == '/') :
             #lexical error
             token_string += current_char
             self.cursor += 1
@@ -233,7 +254,7 @@ class scanner:
          else:
             return 'SYMBOL', token_string, 'bfdb'
             #print(token_string)
-         
+
       #get unkown
        elif char_type == 'UNKNOWN':
           self.cursor += 1
@@ -255,6 +276,8 @@ class scanner:
           #continue
           print(str(self.line_number) + '     ' + str(len(self.lines)))
           check(token_type,token,Error,(self.line_number+1))
+          if Error == "Unclosed comment":
+             break
           #print(token+'_____'+str(self.line_number)+'_____'+ str(self.cursor)+'_____'+str(self.lines[self.line_number][(len(self.lines[self.line_number])-1)]))
           #if index == 20:
           #     break
