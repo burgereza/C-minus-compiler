@@ -114,6 +114,9 @@ class scanner:
    
    
     def get_next_token(self):
+       #EOF reached:
+      #  if self.line_number < len(self.lines)-1:
+      #     return 'DOLLAR','$','EOF_reached',self.line_number
        token_string = ''
        token_type = ''
        char_type,current_char = self.update_char()
@@ -132,7 +135,7 @@ class scanner:
              if self.cursor < len(self.lines[self.line_number]):
                self.cursor += 1
              else: self.line_number += 1
-          return ' ',' ',' ', self.line_number
+          return 'WHITESPACE',' ',' ', self.line_number
 
        #get number
        elif char_type == 'NUM':
@@ -282,6 +285,7 @@ class scanner:
           #if index == 20:
           #     break
           #  index += 1
+       
        print('----------------------')
        write_lexical_errors()
        write_symbol_table()

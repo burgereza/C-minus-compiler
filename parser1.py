@@ -1,5 +1,7 @@
 from anytree import Node
-
+from anytree import RenderTree
+import anytree
+from scanner import scanner
 grammar = {
 
     'Program': [['Declaration-list']],
@@ -213,54 +215,97 @@ class LL1Parser:
         self.token_type = ''
         self.token = ''
         self.line_number = 0
+        self.non_terminals = ['Program','Declaration-list','Declaration','Declaration-initial','Declaration-prime','Var-declaration-prime',
+                              'Fun-declaration-prime',]
         
         
+    def is_non_terminal(self , word):
+            if word in self.non_terminals:
+                return True
+            else:
+                return False
+
     def get_next_token(self):
-        self.token_type , self.token , Error, self.line_number = self.scanner.get_next_token()
+        while True:
+            self.token_type , self.token , Error, self.line_number = self.scanner.get_next_token()
+            if self.token_type != 'WHITESPACE' and self.token_type != 'COMMENT' and self.token_type != 'Error':
+                break
+    
+    def run_parser(self):
+        self.get_next_token()
+        self.parse(Node('Program'))
 
     def parse(self , non_terminal):
-        for i in range(predict[non_terminal:Node]):
-            if self.token in predict[non_terminal:Node][i] or self.token_type in predict[non_terminal:Node][i]:
-                for word in grammar[rule_number]:
-                    if self.unexpected_eof_reached:
+        for i in range(len(predict[non_terminal.name])):
+            if self.token in predict[non_terminal.name][i] or self.token_type in predict[non_terminal.name][i]:
+                for word in grammar[non_terminal.name][i]:
+                    if self.eof_reached():
+                        print(word + 'EOF')
                         return
-                    if is_non_terminal(word):
-                        node = Node(word, parent=parent)
-                        self.call_procedure(node)
-                    else:
+                    if self.is_non_terminal(word):
+                        print('non terminal: ' + word)
+                        #get non terminal
+                        node = Node(word, parent=non_terminal)
+                        self.parse(node)
+                    else: 
+                        #get terminal
                         correct = False
-                        if expected_token in ['NUM', 'ID']:
-                            correct = self.lookahead[1] == expected_token
-                        elif (expected_token in utils.symbol_table['keywords']) \
-                                or (utils.get_token_type(expected_token) == utils.TokenType.SYMBOL or expected_token == '=='):
-                            correct = self.lookahead[2] == expected_token
+                        if word in ['NUM', 'ID']:
+                            correct = (self.token_type == word)
+                        elif (word in self.scanner.KEYWORDS) \
+                                or (self.scanner.get_type(word) == 'SYMBOL' or word == '=='):
+                            correct = (self.token == word)
 
                         if correct:
-                            Node(f'({self.lookahead[1]}, {self.lookahead[2]})', parent=parent)
-                            self.lookahead = self.get_next_token()
-                        elif expected_token == utils.TokenType.EPSILON:
-                            Node('epsilon', parent=parent)
-                        elif expected_token == utils.TokenType.DOLLAR:
-                            Node('$', parent=parent)
+                            Node(f'({self.token_type}, {self.token})', parent=non_terminal)
+                            self.get_next_token()
+
+                        elif word == 'EPSILON':
+                            Node('epsilon', parent=non_terminal)
+                        elif word == 'DOLLAR':
+                            Node('$', parent=non_terminal)
                         else:
-                            self.syntax_errors.append(f'#{self.lookahead[0]} : Syntax Error, Missing {expected_token}')
-                        #self.call_match(word, parent)
-                # #action found
-                # for part in grammar[non_terminal:][i]:
-                #     if is_non_terminal(non_terminal):
-                #         #non_terminal
-                #         self.parse()
-                #     else:
-                #         #terminal
-                #         node = Node(non_terminal)
+                            #Error
+                            self.syntax_errors.append(f'#{self.line_number} : Syntax Error, Missing {word}')
                 return
-        #Error
+        
+                        # correct = False
+                        # if word in ['NUM', 'ID']:
+                        #     correct = (self.token_type == word)
+                        # elif (word in self.scanner.KEYWORDS) \
+                        #         or (self.scanner.get_type(word) == 'SYMBOL' or word == '=='):
+                        #     correct = (self.token == word)
+
+                        # if correct:
+                        #     Node(f'({self.token_type}, {self.token})', parent=non_terminal)
+                        #     self.get_next_token()
+
+                        # elif word == 'EPSILON':
+                        #     Node('epsilon', parent=non_terminal)
+                        # elif word == 'DOLLAR':
+                        #     Node('$', parent=non_terminal)
+                        # else:
+                        #     #Error
+                        #     self.syntax_errors.append(f'#{self.line_number} : Syntax Error, Missing {word}')
+        
 
 
     def eof_reached(self):
-        return self.lookahead[1] == utils.TokenType.DOLLAR
+        if self.token == '$':
+            return True
+        else:
+            return False 
         
+    def write_tree(self, file_name):
+        with open(file_name, 'w') as tree_file:
+            tree_file.write(anytree.RenderTree(self.root).by_attr(attrname="name"))
 
+    def write_syntax_errors(self, file_name):
+            with open(file_name, 'w') as syntax_file:
+                if self.syntax_errors:
+                    syntax_file.write('\n'.join(f'#{a} : {b}' for a, b in self.errors))
+                else:
+                    syntax_file.write('There is no syntax error.')
 
 
 
