@@ -36,13 +36,13 @@ grammar = {
     'Additive-expression-zegond': [['Term-zegond', 'D']],
     'D': [['Addop', 'Term', 'D'],['EPSILON']], 
     'Addop':[['+'],['-']], 
-    'Term': [['Factor', 'G']],
-    'Term-prime': [['Factor-prime', 'G']],
-    'Term-zegond':[['Factor-zegond', 'G']],
+    'Term': [['SignedFactor', 'G']],
+    'Term-prime': [['SignedFactorPrime', 'G']],
+    'Term-zegond':[['SignedFactorZegond', 'G']],
     'G':[['*', 'Factor' ,'G'],['EPSILON']],
     'SignedFactor': [['+' , 'Factor'] , ['-' , 'Factor'], ['Factor']],
-    'SignedFactorPrime' : [['FactorPrime']],
-    'SignedFactorZegond': [['+', 'Factor'] , ['-', 'Factor'] , ['FactorZegond']],
+    'SignedFactorPrime' : [['Factor-Prime']],
+    'SignedFactorZegond': [['+', 'Factor'] , ['-', 'Factor'] , ['FactoZegond']],
     'Factor':[['(', 'Expression', ')'], ['ID', 'Var-call-prime'], ['NUM']],
     'Var-call-prime':[['(', 'Args', ')'], ['Var-prime']],
     'Var-prime':[['[', 'Expression' ']'],['EPSILON']], 
@@ -68,31 +68,31 @@ predict = {
     'Param': [['int','void']] ,
     'Param-prime': [['['],[')', ',']],#19
     'Compound-stmt': [['{']],#20
-    'Statement-list' : [['ID',';','NUM','(','{','break','if','while','return'],['}']],#22
-    'Statement' : [['ID',';','NUM','(','break'], ['{'], ['if'],['while'], ['return']],#27
-    'Expression-stmt' : [['ID','NUM','('],['break'],[';']],#30
+    'Statement-list' : [['ID',';','NUM','(','{','break','if','while','return','+','-'],['}']],#22
+    'Statement' : [['ID',';','NUM','(','break','+','-'], ['{'], ['if'],['while'], ['return']],#27
+    'Expression-stmt' : [['ID','NUM','(','+','-'],['break'],[';']],#30
     'Selection-stmt' : [['if']],#31
     'Iteration-stmt' :[['while']],#32
     'Return-stmt' :[['return']],
-    'Return-stmt-prime': [[';'],['ID','NUM','(']],#35
-    'Expression': [['NUM','('],['ID']],#37
+    'Return-stmt-prime': [[';'],['ID','NUM','(','+','-']],#35
+    'Expression': [['NUM','(','+','-'],['ID']],#37
     'B':[['='],['['],[';',']','(',')',',','<','==','+','-','*']],#40
     'H':[['='],[';',']',')',',','<','==','+','-','*']],#42
-    'Simple-expression-zegond': [['NUM','(']],
+    'Simple-expression-zegond': [['NUM','(','+','-']],
     'Simple-expression-prime' : [[';',']','(',')',',','<','==','+','-','*']],#44
     'C': [['<','=='],[';',']',')',',']], 
     'Relop': [['<'],['==']],#48
-    'Additive-expression': [['ID','NUM','(']], 
+    'Additive-expression': [['ID','NUM','(','+','-']], 
     'Additive-expression-prime': [[';',']','(',')',',','<','==','+','-','*']],
-    'Additive-expression-zegond': [['NUM','(']],#51
+    'Additive-expression-zegond': [['NUM','(','+','-']],#51
     'D': [['+','-'], [';',']',')',',','<','==']],
     'Addop': [['+'],['-']],#55
-    'Term': [['ID','NUM','(']],
+    'Term': [['ID','NUM','(','+','-']],
     'Term-prime': [[';',']','(',')',',','<','==','+','-','*']],
-    'Term-zegond':[['NUM','(']],#58
+    'Term-zegond':[['NUM','(','+','-']],#58
     'G': [['*'],[';',']',')',',','<','==','+','-']], #60
     'SignedFactor': [['+'] , ['-'] , ['ID','NUM','(']],#63
-    'SignedFactorPrime' : [['(']],
+    'SignedFactorPrime' : [[';',']','(',')',',','<','==','+','-','*']],
     'SignedFactorZegond' : [['+'] , ['-'] , ['NUM','(']],#67
     'Factor':[['('],['ID'],['NUM']],#70
     'Var-call-prime':[['('], ['[']],#72
@@ -125,22 +125,22 @@ first = {
     'Selection-stmt' : ['if'],
     'Iteration-stmt' :['while'],
     'Return-stmt' :['return'],
-    'Return-stmt-prime': ['ID',';','NUM','('],
-    'Expression': ['ID','NUM','('],
+    'Return-stmt-prime': ['ID',';','NUM','(','+','-'],
+    'Expression': ['ID','NUM','(','+','-'],
     'B':['[','(','=','<','==','+','-','*','EPSILON'],
     'H':['=','<','==','+','-','*','EPSILON'],
-    'Simple-expression-zegond': ['NUM','('],
+    'Simple-expression-zegond': ['NUM','(','+','-'],
     'Simple-expression-prime' : ['(','==','+','-','*','EPSILON'],
     'C': ['<','==','EPSILON'], 
     'Relop': ['<','=='],
-    'Additive-expression': ['ID','NUM','('], 
-    'Additive-expression-prime': ['(','==','+','-','*','EPSILON'],
-    'Additive-expression-zegond': ['NUM','('],
+    'Additive-expression': ['ID','NUM','(','+','-'], 
+    'Additive-expression-prime': ['(','+','-','*','EPSILON'],
+    'Additive-expression-zegond': ['NUM','(','+','-'],
     'D': ['+','-', 'EPSILON'],
     'Addop': ['+','-'],
-    'Term': ['ID','NUM','('],
+    'Term': ['ID','NUM','(','+','-'],
     'Term-prime': ['(','*','EPSILON'],
-    'Term-zegond':['NUM','('],
+    'Term-zegond':['NUM','(','+','-'],
     'G': ['*','EPSILON'], 
     'SignedFactor': ['ID' , 'NUM' , '(', '+', '-'],
     'SignedFactorPrime' : ['(' , 'EPSILON'],
@@ -150,51 +150,51 @@ first = {
     'Var-prime':['['],
     'Factor-prime':['(','EPSILON'],
     'Factor-zegond':['NUM','('], 
-    'Args': ['ID','NUM','(','EPSILON'], 
-    'Arg-list':['ID','NUM','('], 
+    'Args': ['ID','NUM','(','+','-','EPSILON'], 
+    'Arg-list':['ID','NUM','(','+','-'], 
     'Arg-list-prime': [',','EPSILON']
 } 
 
 follow = {
     'Program':['$'] ,
-    'Declaration-list':['ID',';','NUM','(','{','}','break','if','while','return','$'] ,
-    'Declaration': ['int','void','ID',';','NUM','(','{','}','break','if','while','return','$'] ,
+    'Declaration-list':['ID',';','NUM','(','{','}','break','if','while','return','+','-','$'] ,
+    'Declaration': ['int','void','ID',';','NUM','(','{','}','break','if','while','return','+','-','$'] ,
     'Declaration-initial' : [';','[','(',')',','] ,
-    'Declaration-prime' : ['ID',';','NUM','(','int','void','{','}','break','if','while','return','$'],
-    'Var-declaration-prime' : ['ID',';','NUM','(','int','void','{','}','break','if','while','return','$'],
-    'Fun-declaration-prime' : ['ID',';','NUM','(','int','void','{','}','break','if','while','return','$'],
+    'Declaration-prime' : ['ID',';','NUM','(','int','void','{','}','break','if','while','return','+','-','$'],
+    'Var-declaration-prime' : ['ID',';','NUM','(','int','void','{','}','break','if','while','return','+','-','$'],
+    'Fun-declaration-prime' : ['ID',';','NUM','(','int','void','{','}','break','if','while','return','+','-','$'],
     'Type-specifier': ['ID'] ,
     'Params': [')'] ,
     'Param-list': [')'],
     'Param': [')',','] ,
     'Param-prime': [')',','],
-    'Compound-stmt': ['ID',';','NUM','(','int','void','{','}','break','if','else','while','return','$'],
+    'Compound-stmt': ['ID',';','NUM','(','int','void','{','}','break','if','else','while','return','+','-','$'],
     'Statement-list' : ['}'],
-    'Statement' : ['ID',';','NUM','(','{','}','break','if','else','while','return'],
-    'Expression-stmt' : ['ID',';','NUM','(','{','}','break','if','else','while','return'],
-    'Selection-stmt' : ['ID',';','NUM','(','{','}','break','if','else','while','return'],
-    'Iteration-stmt' :['ID',';','NUM','(','{','}','break','if','else','while','return'],
-    'Return-stmt' :['ID',';','NUM','(','{','}','break','if','else','while','return'],
-    'Return-stmt-prime': ['ID',';','NUM','(','{','}','break','if','else','while','return'],
+    'Statement' : ['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
+    'Expression-stmt' : ['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
+    'Selection-stmt' : ['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
+    'Iteration-stmt' :['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
+    'Return-stmt' :['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
+    'Return-stmt-prime': ['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
     'Expression': [';',']',')',','],
     'B':[';',']',')',','],
     'H':[';',']',')',','],
     'Simple-expression-zegond': [';',']',')',','],
     'Simple-expression-prime' : [';',']',')',','],
     'C': [';',']',')',','],
-    'Relop': ['ID','NUM','(',],
+    'Relop': ['ID','NUM','(','+','-'],
     'Additive-expression': [';',']',')',','],
     'Additive-expression-prime': [';',']',')',',','<','=='],
     'Additive-expression-zegond': [';',']',')',',','<','=='],
     'D': [';',']',')',',','<','=='],
-    'Addop': ['ID','NUM','(',],
+    'Addop': ['ID','NUM','(','+','-'],
     'Term': [';',']',')',',','<','==','+','-'],
     'Term-prime': [';',']',')',',','<','==','+','-'],
     'Term-zegond':[';',']',')',',','<','==','+','-'],
     'G': [';',']',')',',','<','==','+','-'],
-    'SignedFactor': [],
-    'SignedFactorPrime' : [],
-    'SignedFactorZegond' : [],
+    'SignedFactor': [';',']',')',',','<','==','+','-','*'],
+    'SignedFactorPrime' : [';',']',')',',','<','==','+','-','*'],
+    'SignedFactorZegond' : [';',']',')',',','<','==','+','-','*'],
     'Factor':[';',']',')',',','<','==','+','-','*'],
     'Var-call-prime':[';',']',')',',','<','==','+','-','*'],
     'Var-prime':[';',']',')',',','<','==','+','-','*'],
