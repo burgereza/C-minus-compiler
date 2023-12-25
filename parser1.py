@@ -39,7 +39,7 @@ grammar = {
     'Term': [['SignedFactor', 'G']],
     'Term-prime': [['SignedFactorPrime', 'G']],
     'Term-zegond':[['SignedFactorZegond', 'G']],
-    'G':[['*', 'Factor' ,'G'],['EPSILON']],
+    'G':[['*', 'SignedFactor' ,'G'],['EPSILON']],
     'SignedFactor': [['+' , 'Factor'] , ['-' , 'Factor'], ['Factor']],
     'SignedFactorPrime' : [['Factor-Prime']],
     'SignedFactorZegond': [['+', 'Factor'] , ['-', 'Factor'] , ['FactoZegond']],
@@ -206,6 +206,10 @@ follow = {
 } 
 
 
+def get_keys(data):
+    return list(data.keys())
+
+KEYWORDS = ["if", "else", "void", "int", "while", "break","return"]
 
 class LL1Parser:
     def __init__(self):
@@ -215,9 +219,8 @@ class LL1Parser:
         self.token_type = ''
         self.token = ''
         self.line_number = 0
-        self.non_terminals = ['Program','Declaration-list','Declaration','Declaration-initial','Declaration-prime','Var-declaration-prime',
-                              'Fun-declaration-prime',]
-        
+        self.non_terminals = get_keys(grammar)
+        self.unexpected_eof_reached = False
         
     def is_non_terminal(self , word):
             if word in self.non_terminals:
@@ -230,16 +233,18 @@ class LL1Parser:
             self.token_type , self.token , Error, self.line_number = self.scanner.get_next_token()
             if self.token_type != 'WHITESPACE' and self.token_type != 'COMMENT' and self.token_type != 'Error':
                 break
+        print('token= ' + self.token)
     
     def run_parser(self):
         self.get_next_token()
-        self.parse(Node('Program'))
+        self.parse(self.root)
 
-    def parse(self , non_terminal):
+    def parse(self , non_terminal:Node):
         for i in range(len(predict[non_terminal.name])):
+            print('node is: ' + non_terminal.name )
             if self.token in predict[non_terminal.name][i] or self.token_type in predict[non_terminal.name][i]:
                 for word in grammar[non_terminal.name][i]:
-                    if self.eof_reached():
+                    if self.unexpected_eof_reached:
                         print(word + 'EOF')
                         return
                     if self.is_non_terminal(word):
@@ -248,12 +253,13 @@ class LL1Parser:
                         node = Node(word, parent=non_terminal)
                         self.parse(node)
                     else: 
+                        print('terminal is: ' + word)
                         #get terminal
                         correct = False
                         if word in ['NUM', 'ID']:
                             correct = (self.token_type == word)
-                        elif (word in self.scanner.KEYWORDS) \
-                                or (self.scanner.get_type(word) == 'SYMBOL' or word == '=='):
+                        elif (word in KEYWORDS) \
+                                or (self.scanner.get_token_type(word) == 'SYMBOL' or word == '=='):
                             correct = (self.token == word)
 
                         if correct:
@@ -267,6 +273,29 @@ class LL1Parser:
                         else:
                             #Error
                             self.syntax_errors.append(f'#{self.line_number} : Syntax Error, Missing {word}')
+                break
+        else:  # is visited when no corresponding production was found
+            print('problem is here')
+            if self.token in follow[non_terminal.name]:
+                if 'EPSILON' not in first[non_terminal.name]:  # missing T
+                    self.syntax_errors.append(f'#{self.line_number} : Syntax Error, Missing {non_terminal.name}')
+                non_terminal.parent = None  # Detach Node
+                return  # exit
+            else:  # illegal token
+                if self.eof_reached():
+                    self.syntax_errors.append(f'#{self.line_number} : syntax error, unexpected EOF')
+                    self.unexpected_eof_reached = True
+                    non_terminal.parent = None  # Detach Node
+                    return
+                # in samples, illegals are treated differently:
+                illegal_lookahead = self.token
+                if self.token_type in ['NUM', 'ID']:
+                    illegal_lookahead = self.token_type
+                #
+                self.syntax_errors.append(f'#{self.line_number} : syntax error, illegal {illegal_lookahead}')
+                self.get_next_token()
+                self.parse(non_terminal)
+
                 return
         
                         # correct = False
@@ -296,9 +325,10 @@ class LL1Parser:
         else:
             return False 
         
-    def write_tree(self, file_name):
-        with open(file_name, 'w') as tree_file:
-            tree_file.write(anytree.RenderTree(self.root).by_attr(attrname="name"))
+    def write_tree(self):
+        with open('parse_tree.txt', 'w', encoding='utf-8') as f:
+            for pre, fill, node in RenderTree(self.root):
+                f.write("%s%s\n" % (pre, node.name))
 
     def write_syntax_errors(self, file_name):
             with open(file_name, 'w') as syntax_file:

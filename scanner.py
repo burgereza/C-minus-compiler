@@ -111,12 +111,15 @@ class scanner:
       
     def find_comment (self):
        return
+    
+    def get_token_type(self , word):
+       return get_type(word)
    
    
     def get_next_token(self):
        #EOF reached:
-      #  if self.line_number < len(self.lines)-1:
-      #     return 'DOLLAR','$','EOF_reached',self.line_number
+       if self.line_number >= len(self.lines)-1:
+          return 'DOLLAR','$','EOF_reached',self.line_number
        token_string = ''
        token_type = ''
        char_type,current_char = self.update_char()
