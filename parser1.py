@@ -3,206 +3,206 @@ from anytree import RenderTree
 import anytree
 from scanner import scanner
 grammar = {
-
-    'Program': [['Declaration-list']],
-    'Declaration-list' : [['Declaration', 'Declaration-list'],['EPSILON']], 
-    'Declaration' : [['Declaration-initial',  'Declaration-prime']],
-    'Declaration-initial' : [['Type-specifier', 'ID']],
-    'Declaration-prime' : [['Fun-declaration-prime'], ['Var-declaration-prime']],
-    'Var-declaration-prime' : [[';'],['[', 'NUM', ']', ';']],  
-    'Fun-declaration-prime' : [ ['(', 'Params', ')', 'Compound-stmt']],
-    'Type-specifier': [['int'], ['void']],
-    'Params': [['int', 'ID' ,'Param-prime', 'Param-list'], ['void']],
-    'Param-list': [[',', 'Param', 'Param-list'], ['EPSILON']],
-    'Param': [ ['Declaration-initial', 'Param-prime']],
-    'Param-prime': [['[', ']'],['EPSILON']] ,
-    'Compound-stmt': [['{' ,'Declaration-list', 'Statement-list', '}']],
-    'Statement-list' :[[ 'Statement', 'Statement-list'],['EPSILON']],  
-    'Statement' : [['Expression-stmt'], ['Compound-stmt'], ['Selection-stmt'], ['Iteration-stmt' ],['Return-stmt']],
-    'Expression-stmt' : [['Expression', ';'], ['break', ';'], [';']],
-    'Selection-stmt' : [['if', '(', 'Expression' ,')', 'Statement', 'else', 'Statement']],
-    'Iteration-stmt' :[[ 'while', '(', 'Expression', ')', 'Statement']], 
-    'Return-stmt' :[['return', 'Return-stmt-prime']],
-    'Return-stmt-prime':[[';'],['Expression', ';']],
-    'Expression': [['Simple-expression-zegond'], ['ID', 'B']],
-    'B':[[ '=', 'Expression'], ['[', 'Expression', ']', 'H'], ['Simple-expression-prime']],
+    
+    'Program': [['DeclarationList','$']],
+    'DeclarationList' : [['Declaration', 'DeclarationList'],['EPSILON']], 
+    'Declaration' : [['DeclarationInitial',  'DeclarationPrime']],
+    'DeclarationInitial' : [['TypeSpecifier', 'ID']],
+    'DeclarationPrime' : [['FunDeclarationPrime'], ['VarDeclarationPrime']],
+    'VarDeclarationPrime' : [[';'],['[', 'NUM', ']', ';']],  
+    'FunDeclarationPrime' : [ ['(', 'Params', ')', 'CompoundStmt']],
+    'TypeSpecifier': [['int'], ['void']],
+    'Params': [['int', 'ID' ,'ParamPrime', 'ParamList'], ['void']],
+    'ParamList': [[',', 'Param', 'ParamList'], ['EPSILON']],
+    'Param': [ ['DeclarationInitial', 'ParamPrime']],
+    'ParamPrime': [['[', ']'],['EPSILON']] ,
+    'CompoundStmt': [['{' ,'DeclarationList', 'StatementList', '}']],
+    'StatementList' :[[ 'Statement', 'StatementList'],['EPSILON']],  
+    'Statement' : [['ExpressionStmt'], ['CompoundStmt'], ['SelectionStmt'], ['IterationStmt' ],['ReturnStmt']],
+    'ExpressionStmt' : [['Expression', ';'], ['break', ';'], [';']],
+    'SelectionStmt' : [['if', '(', 'Expression' ,')', 'Statement', 'else', 'Statement']],
+    'IterationStmt' :[[ 'while', '(', 'Expression', ')', 'Statement']], 
+    'ReturnStmt' :[['return', 'ReturnStmtPrime']],
+    'ReturnStmtPrime':[[';'],['Expression', ';']],
+    'Expression': [['SimpleExpressionZegond'], ['ID', 'B']],
+    'B':[[ '=', 'Expression'], ['[', 'Expression', ']', 'H'], ['SimpleExpressionPrime']],
     'H':[[ '=', 'Expression'], ['G', 'D', 'C']],
-    'Simple-expression-zegond': [['Additive-expression-zegond', 'C']],
-    'Simple-expression-prime' : [['Additive-expression-prime', 'C']],
-    'C': [['Relop', 'Additive-expression'],['EPSILON']], 
+    'SimpleExpressionZegond': [['AdditiveExpressionZegond', 'C']],
+    'SimpleExpressionPrime' : [['AdditiveExpressionPrime', 'C']],
+    'C': [['Relop', 'AdditiveExpression'],['EPSILON']], 
     'Relop': [['<'],['==']], 
-    'Additive-expression': [['Term D']],
-    'Additive-expression-prime': [['Term-prime', 'D']],
-    'Additive-expression-zegond': [['Term-zegond', 'D']],
+    'AdditiveExpression': [['Term', 'D']],
+    'AdditiveExpressionPrime': [['TermPrime', 'D']],
+    'AdditiveExpressionZegond': [['TermZegond', 'D']],
     'D': [['Addop', 'Term', 'D'],['EPSILON']], 
     'Addop':[['+'],['-']], 
     'Term': [['SignedFactor', 'G']],
-    'Term-prime': [['SignedFactorPrime', 'G']],
-    'Term-zegond':[['SignedFactorZegond', 'G']],
+    'TermPrime': [['SignedFactorPrime', 'G']],
+    'TermZegond':[['SignedFactorZegond', 'G']],
     'G':[['*', 'SignedFactor' ,'G'],['EPSILON']],
     'SignedFactor': [['+' , 'Factor'] , ['-' , 'Factor'], ['Factor']],
-    'SignedFactorPrime' : [['Factor-Prime']],
-    'SignedFactorZegond': [['+', 'Factor'] , ['-', 'Factor'] , ['FactoZegond']],
-    'Factor':[['(', 'Expression', ')'], ['ID', 'Var-call-prime'], ['NUM']],
-    'Var-call-prime':[['(', 'Args', ')'], ['Var-prime']],
-    'Var-prime':[['[', 'Expression' ']'],['EPSILON']], 
-    'Factor-prime':[['(' 'Args' ')'],['EPSILON']],  
-    'Factor-zegond': [['(', 'Expression', ')'], ['NUM']],
-    'Args': [['Arg-list'],['EPSILON']], 
-    'Arg-list': [['Expression', 'Arg-list-prime']],
-    'Arg-list-prime': [[',', 'Expression', 'Arg-list-prime'],['EPSILON']]
+    'SignedFactorPrime' : [['FactorPrime']],
+    'SignedFactorZegond': [['+', 'Factor'] , ['-', 'Factor'] , ['FactorZegond']],
+    'Factor':[['(', 'Expression', ')'], ['ID', 'VarCallPrime'], ['NUM']],
+    'VarCallPrime':[['(', 'Args', ')'], ['VarPrime']],
+    'VarPrime':[['[', 'Expression', ']'],['EPSILON']], 
+    'FactorPrime':[['(', 'Args', ')'],['EPSILON']],  
+    'FactorZegond': [['(', 'Expression', ')'], ['NUM']],
+    'Args': [['ArgList'],['EPSILON']], 
+    'ArgList': [['Expression', 'ArgListPrime']],
+    'ArgListPrime': [[',', 'Expression', 'ArgListPrime'],['EPSILON']]
 
 } 
 
 predict = {
-    'Program':[['int','viod','$']] ,
-    'Declaration-list':[['int','void'],['ID',';','NUM','(','{','}','break','if','while','return','$']] ,
+    'Program':[['int','void','$']] ,
+    'DeclarationList':[['int','void'],['ID',';','NUM','(','{','}','break','if','while','return','$']] ,
     'Declaration': [['int','void']] ,
-    'Declaration-initial' : [['int','void']] ,
-    'Declaration-prime' : [ ['('],[';','[']],
-    'Var-declaration-prime' : [[';'],['[']],
-    'Fun-declaration-prime' : [['(']],
-    'Type-specifier': [['int'],['void']] ,
+    'DeclarationInitial' : [['int','void']] ,
+    'DeclarationPrime' : [ ['('],[';','[']],
+    'VarDeclarationPrime' : [[';'],['[']],
+    'FunDeclarationPrime' : [['(']],
+    'TypeSpecifier': [['int'],['void']] ,
     'Params': [['int'],['void']] ,
-    'Param-list': [[','],[')']],#16
+    'ParamList': [[','],[')']],#16
     'Param': [['int','void']] ,
-    'Param-prime': [['['],[')', ',']],#19
-    'Compound-stmt': [['{']],#20
-    'Statement-list' : [['ID',';','NUM','(','{','break','if','while','return','+','-'],['}']],#22
+    'ParamPrime': [['['],[')', ',']],#19
+    'CompoundStmt': [['{']],#20
+    'StatementList' : [['ID',';','NUM','(','{','break','if','while','return','+','-'],['}']],#22
     'Statement' : [['ID',';','NUM','(','break','+','-'], ['{'], ['if'],['while'], ['return']],#27
-    'Expression-stmt' : [['ID','NUM','(','+','-'],['break'],[';']],#30
-    'Selection-stmt' : [['if']],#31
-    'Iteration-stmt' :[['while']],#32
-    'Return-stmt' :[['return']],
-    'Return-stmt-prime': [[';'],['ID','NUM','(','+','-']],#35
+    'ExpressionStmt' : [['ID','NUM','(','+','-'],['break'],[';']],#30
+    'SelectionStmt' : [['if']],#31
+    'IterationStmt' :[['while']],#32
+    'ReturnStmt' :[['return']],
+    'ReturnStmtPrime': [[';'],['ID','NUM','(','+','-']],#35
     'Expression': [['NUM','(','+','-'],['ID']],#37
     'B':[['='],['['],[';',']','(',')',',','<','==','+','-','*']],#40
     'H':[['='],[';',']',')',',','<','==','+','-','*']],#42
-    'Simple-expression-zegond': [['NUM','(','+','-']],
-    'Simple-expression-prime' : [[';',']','(',')',',','<','==','+','-','*']],#44
+    'SimpleExpressionZegond': [['NUM','(','+','-']],
+    'SimpleExpressionPrime' : [[';',']','(',')',',','<','==','+','-','*']],#44
     'C': [['<','=='],[';',']',')',',']], 
     'Relop': [['<'],['==']],#48
-    'Additive-expression': [['ID','NUM','(','+','-']], 
-    'Additive-expression-prime': [[';',']','(',')',',','<','==','+','-','*']],
-    'Additive-expression-zegond': [['NUM','(','+','-']],#51
+    'AdditiveExpression': [['ID','NUM','(','+','-']], 
+    'AdditiveExpressionPrime': [[';',']','(',')',',','<','==','+','-','*']],
+    'AdditiveExpressionZegond': [['NUM','(','+','-']],#51
     'D': [['+','-'], [';',']',')',',','<','==']],
     'Addop': [['+'],['-']],#55
     'Term': [['ID','NUM','(','+','-']],
-    'Term-prime': [[';',']','(',')',',','<','==','+','-','*']],
-    'Term-zegond':[['NUM','(','+','-']],#58
+    'TermPrime': [[';',']','(',')',',','<','==','+','-','*']],
+    'TermZegond':[['NUM','(','+','-']],#58
     'G': [['*'],[';',']',')',',','<','==','+','-']], #60
     'SignedFactor': [['+'] , ['-'] , ['ID','NUM','(']],#63
     'SignedFactorPrime' : [[';',']','(',')',',','<','==','+','-','*']],
     'SignedFactorZegond' : [['+'] , ['-'] , ['NUM','(']],#67
     'Factor':[['('],['ID'],['NUM']],#70
-    'Var-call-prime':[['('], ['[']],#72
-    'Var-prime':[['['],[';',']',')',',','<','==','+','-','*']],#74
-    'Factor-prime':[['('],[';',']',')',',','<','==','+','-','*']],#76
-    'Factor-zegond':[['('],['NUM']],#78
+    'VarCallPrime':[['('], [';','[',']',')',',','<','==','+','-','*']],#72
+    'VarPrime':[['['],[';',']',')',',','<','==','+','-','*']],#74
+    'FactorPrime':[['('],[';',']',')',',','<','==','+','-','*']],#76
+    'FactorZegond':[['('],['NUM']],#78
     'Args': [['ID','NUM','('],[')']],#80 
-    'Arg-list':[['ID','NUM','(']], #81
-    'Arg-list-prime': [[','],[')']]#83
+    'ArgList':[['ID','NUM','(']], #81
+    'ArgListPrime': [[','],[')']]#83
 } 
 
 
 first = {
-    'Program':['int','viod','EPSILON'] ,
-    'Declaration-list':['int','void','EPSILON'] ,
+    'Program':['int','void','EPSILON'] ,
+    'DeclarationList':['int','void','EPSILON'] ,
     'Declaration': ['int','void'] ,
-    'Declaration-initial' : ['int','void'] ,
-    'Declaration-prime' : [';','[','('],
-    'Var-declaration-prime' : [';','['],
-    'Fun-declaration-prime' : ['('],
-    'Type-specifier': ['int','void'] ,
+    'DeclarationInitial' : ['int','void'] ,
+    'DeclarationPrime' : [';','[','('],
+    'VarDeclarationPrime' : [';','['],
+    'FunDeclarationPrime' : ['('],
+    'TypeSpecifier': ['int','void'] ,
     'Params': ['int','void'] ,
-    'Param-list': [',','EPSILON'],
+    'ParamList': [',','EPSILON'],
     'Param': ['int','void'] ,
-    'Param-prime': ['[','EPSILON'],
-    'Compound-stmt': ['{'],
-    'Statement-list' : ['ID',';','NUM','(','{','break','if','while','return','EPSILON'],
+    'ParamPrime': ['[','EPSILON'],
+    'CompoundStmt': ['{'],
+    'StatementList' : ['ID',';','NUM','(','{','break','if','while','return','EPSILON'],
     'Statement' : ['ID',';','NUM','(','{','break','if','while', 'return'],
-    'Expression-stmt' : ['ID',';','NUM','(','break'],
-    'Selection-stmt' : ['if'],
-    'Iteration-stmt' :['while'],
-    'Return-stmt' :['return'],
-    'Return-stmt-prime': ['ID',';','NUM','(','+','-'],
+    'ExpressionStmt' : ['ID',';','NUM','(','break'],
+    'SelectionStmt' : ['if'],
+    'IterationStmt' :['while'],
+    'ReturnStmt' :['return'],
+    'ReturnStmtPrime': ['ID',';','NUM','(','+','-'],
     'Expression': ['ID','NUM','(','+','-'],
     'B':['[','(','=','<','==','+','-','*','EPSILON'],
     'H':['=','<','==','+','-','*','EPSILON'],
-    'Simple-expression-zegond': ['NUM','(','+','-'],
-    'Simple-expression-prime' : ['(','==','+','-','*','EPSILON'],
+    'SimpleExpressionZegond': ['NUM','(','+','-'],
+    'SimpleExpressionPrime' : ['(','==','+','-','*','EPSILON'],
     'C': ['<','==','EPSILON'], 
     'Relop': ['<','=='],
-    'Additive-expression': ['ID','NUM','(','+','-'], 
-    'Additive-expression-prime': ['(','+','-','*','EPSILON'],
-    'Additive-expression-zegond': ['NUM','(','+','-'],
+    'AdditiveExpression': ['ID','NUM','(','+','-'], 
+    'AdditiveExpressionPrime': ['(','+','-','*','EPSILON'],
+    'AdditiveExpressionZegond': ['NUM','(','+','-'],
     'D': ['+','-', 'EPSILON'],
     'Addop': ['+','-'],
     'Term': ['ID','NUM','(','+','-'],
-    'Term-prime': ['(','*','EPSILON'],
-    'Term-zegond':['NUM','(','+','-'],
+    'TermPrime': ['(','*','EPSILON'],
+    'TermZegond':['NUM','(','+','-'],
     'G': ['*','EPSILON'], 
     'SignedFactor': ['ID' , 'NUM' , '(', '+', '-'],
     'SignedFactorPrime' : ['(' , 'EPSILON'],
     'SignedFactorZegond' : ['NUM' , '(', '+', '-'],
     'Factor':['ID','NUM','('], 
-    'Var-call-prime':['[','(','EPSILON'],
-    'Var-prime':['['],
-    'Factor-prime':['(','EPSILON'],
-    'Factor-zegond':['NUM','('], 
+    'VarCallPrime':['[','(','EPSILON'],
+    'VarPrime':['[','EPSILON'],
+    'FactorPrime':['(','EPSILON'],
+    'FactorZegond':['NUM','('], 
     'Args': ['ID','NUM','(','+','-','EPSILON'], 
-    'Arg-list':['ID','NUM','(','+','-'], 
-    'Arg-list-prime': [',','EPSILON']
+    'ArgList':['ID','NUM','(','+','-'], 
+    'ArgListPrime': [',','EPSILON']
 } 
 
 follow = {
     'Program':['$'] ,
-    'Declaration-list':['ID',';','NUM','(','{','}','break','if','while','return','+','-','$'] ,
+    'DeclarationList':['ID',';','NUM','(','{','}','break','if','while','return','+','-','$'] ,
     'Declaration': ['int','void','ID',';','NUM','(','{','}','break','if','while','return','+','-','$'] ,
-    'Declaration-initial' : [';','[','(',')',','] ,
-    'Declaration-prime' : ['ID',';','NUM','(','int','void','{','}','break','if','while','return','+','-','$'],
-    'Var-declaration-prime' : ['ID',';','NUM','(','int','void','{','}','break','if','while','return','+','-','$'],
-    'Fun-declaration-prime' : ['ID',';','NUM','(','int','void','{','}','break','if','while','return','+','-','$'],
-    'Type-specifier': ['ID'] ,
+    'DeclarationInitial' : [';','[','(',')',','] ,
+    'DeclarationPrime' : ['ID',';','NUM','(','int','void','{','}','break','if','while','return','+','-','$'],
+    'VarDeclarationPrime' : ['ID',';','NUM','(','int','void','{','}','break','if','while','return','+','-','$'],
+    'FunDeclarationPrime' : ['ID',';','NUM','(','int','void','{','}','break','if','while','return','+','-','$'],
+    'TypeSpecifier': ['ID'] ,
     'Params': [')'] ,
-    'Param-list': [')'],
+    'ParamList': [')'],
     'Param': [')',','] ,
-    'Param-prime': [')',','],
-    'Compound-stmt': ['ID',';','NUM','(','int','void','{','}','break','if','else','while','return','+','-','$'],
-    'Statement-list' : ['}'],
+    'ParamPrime': [')',','],
+    'CompoundStmt': ['ID',';','NUM','(','int','void','{','}','break','if','else','while','return','+','-','$'],
+    'StatementList' : ['}'],
     'Statement' : ['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
-    'Expression-stmt' : ['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
-    'Selection-stmt' : ['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
-    'Iteration-stmt' :['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
-    'Return-stmt' :['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
-    'Return-stmt-prime': ['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
+    'ExpressionStmt' : ['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
+    'SelectionStmt' : ['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
+    'IterationStmt' :['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
+    'ReturnStmt' :['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
+    'ReturnStmtPrime': ['ID',';','NUM','(','{','}','break','if','else','while','return','+','-'],
     'Expression': [';',']',')',','],
     'B':[';',']',')',','],
     'H':[';',']',')',','],
-    'Simple-expression-zegond': [';',']',')',','],
-    'Simple-expression-prime' : [';',']',')',','],
+    'SimpleExpressionZegond': [';',']',')',','],
+    'SimpleExpressionPrime' : [';',']',')',','],
     'C': [';',']',')',','],
     'Relop': ['ID','NUM','(','+','-'],
-    'Additive-expression': [';',']',')',','],
-    'Additive-expression-prime': [';',']',')',',','<','=='],
-    'Additive-expression-zegond': [';',']',')',',','<','=='],
+    'AdditiveExpression': [';',']',')',','],
+    'AdditiveExpressionPrime': [';',']',')',',','<','=='],
+    'AdditiveExpressionZegond': [';',']',')',',','<','=='],
     'D': [';',']',')',',','<','=='],
     'Addop': ['ID','NUM','(','+','-'],
     'Term': [';',']',')',',','<','==','+','-'],
-    'Term-prime': [';',']',')',',','<','==','+','-'],
-    'Term-zegond':[';',']',')',',','<','==','+','-'],
+    'TermPrime': [';',']',')',',','<','==','+','-'],
+    'TermZegond':[';',']',')',',','<','==','+','-'],
     'G': [';',']',')',',','<','==','+','-'],
     'SignedFactor': [';',']',')',',','<','==','+','-','*'],
     'SignedFactorPrime' : [';',']',')',',','<','==','+','-','*'],
     'SignedFactorZegond' : [';',']',')',',','<','==','+','-','*'],
     'Factor':[';',']',')',',','<','==','+','-','*'],
-    'Var-call-prime':[';',']',')',',','<','==','+','-','*'],
-    'Var-prime':[';',']',')',',','<','==','+','-','*'],
-    'Factor-prime':[';',']',')',',','<','==','+','-','*'],
-    'Factor-zegond':[';',']',')',',','<','==','+','-','*'],
+    'VarCallPrime':[';',']',')',',','<','==','+','-','*'],
+    'VarPrime':[';',']',')',',','<','==','+','-','*'],
+    'FactorPrime':[';',']',')',',','<','==','+','-','*'],
+    'FactorZegond':[';',']',')',',','<','==','+','-','*'],
     'Args': [')'], 
-    'Arg-list':[')'], 
-    'Arg-list-prime': [')']
+    'ArgList':[')'], 
+    'ArgListPrime': [')']
 } 
 
 
@@ -237,15 +237,21 @@ class LL1Parser:
     
     def run_parser(self):
         self.get_next_token()
+        print('1:',self.token,'---------------',self.token_type)
         self.parse(self.root)
+
 
     def parse(self , non_terminal:Node):
         for i in range(len(predict[non_terminal.name])):
-            print('node is: ' + non_terminal.name )
+            print('--------------node is: ' + non_terminal.name + ' i= ' + str(i) + ' -------------' )
+            print('token: ' + self.token + '  ' + 'token type: ' + self.token_type)
+            print(predict[non_terminal.name][i])
             if self.token in predict[non_terminal.name][i] or self.token_type in predict[non_terminal.name][i]:
+                print('touched')
                 for word in grammar[non_terminal.name][i]:
+                    print('########### word is= ' + word + '###########')
                     if self.unexpected_eof_reached:
-                        print(word + 'EOF')
+                        print('**********EOF**********')
                         return
                     if self.is_non_terminal(word):
                         print('non terminal: ' + word)
@@ -253,37 +259,55 @@ class LL1Parser:
                         node = Node(word, parent=non_terminal)
                         self.parse(node)
                     else: 
-                        print('terminal is: ' + word)
-                        #get terminal
-                        correct = False
-                        if word in ['NUM', 'ID']:
-                            correct = (self.token_type == word)
-                        elif (word in KEYWORDS) \
-                                or (self.scanner.get_token_type(word) == 'SYMBOL' or word == '=='):
-                            correct = (self.token == word)
-
-                        if correct:
+                        print('terminal is: ' + word )
+                        
+                        if word in ['NUM', 'ID'] and self.token_type == word:
+                            Node(f'({self.token_type}, {self.token})', parent=non_terminal)
+                            print('2:',self.token,'---------------',self.token_type)
+                            self.get_next_token()
+                        
+                        elif (word in KEYWORDS or (word == '==' or self.scanner.get_token_type(word) == 'SYMBOL')) and self.token == word:
                             Node(f'({self.token_type}, {self.token})', parent=non_terminal)
                             self.get_next_token()
-
+                
+                        elif word == '$':
+                            Node('$', parent=non_terminal)
                         elif word == 'EPSILON':
                             Node('epsilon', parent=non_terminal)
-                        elif word == 'DOLLAR':
-                            Node('$', parent=non_terminal)
                         else:
                             #Error
-                            self.syntax_errors.append(f'#{self.line_number} : Syntax Error, Missing {word}')
+                            self.syntax_errors.append(f'#{self.line_number + 1} : syntax error, missing {word}')
+
+
+                        #get terminal
+                        # correct = False
+                        # if word in ['NUM', 'ID']:
+                        #     correct = (self.token_type == word)
+                        # elif (word in KEYWORDS) \
+                        #         or (self.scanner.get_token_type(word) == 'SYMBOL' or word == '=='):
+                        #     correct = (self.token == word)
+                        # if correct:
+                        #     Node(f'({self.token_type}, {self.token})', parent=non_terminal)
+                        #     print('2:',self.token,'---------------',self.token_type)
+                        #     self.get_next_token()
+                        # elif word == 'EPSILON':
+                        #     Node('epsilon', parent=non_terminal)
+                        # elif word == '$':
+                        #     Node('$', parent=non_terminal)
+                        # else:
+                        #     #Error
+                        #     self.syntax_errors.append(f'#{self.line_number + 1} : syntax error, missing {word}')
                 break
         else:  # is visited when no corresponding production was found
             print('problem is here')
             if self.token in follow[non_terminal.name]:
                 if 'EPSILON' not in first[non_terminal.name]:  # missing T
-                    self.syntax_errors.append(f'#{self.line_number} : Syntax Error, Missing {non_terminal.name}')
+                    self.syntax_errors.append(f'#{self.line_number + 1} : syntax error, missing {non_terminal.name}')
                 non_terminal.parent = None  # Detach Node
                 return  # exit
             else:  # illegal token
                 if self.eof_reached():
-                    self.syntax_errors.append(f'#{self.line_number} : syntax error, unexpected EOF')
+                    self.syntax_errors.append(f'#{self.line_number + 1} : syntax error, Unexpected EOF')
                     self.unexpected_eof_reached = True
                     non_terminal.parent = None  # Detach Node
                     return
@@ -292,30 +316,12 @@ class LL1Parser:
                 if self.token_type in ['NUM', 'ID']:
                     illegal_lookahead = self.token_type
                 #
-                self.syntax_errors.append(f'#{self.line_number} : syntax error, illegal {illegal_lookahead}')
+                self.syntax_errors.append(f'#{self.line_number + 1} : syntax error, illegal {illegal_lookahead}')
+                
                 self.get_next_token()
+                print('3:',self.token,'---------------',self.token_type)
                 self.parse(non_terminal)
 
-                return
-        
-                        # correct = False
-                        # if word in ['NUM', 'ID']:
-                        #     correct = (self.token_type == word)
-                        # elif (word in self.scanner.KEYWORDS) \
-                        #         or (self.scanner.get_type(word) == 'SYMBOL' or word == '=='):
-                        #     correct = (self.token == word)
-
-                        # if correct:
-                        #     Node(f'({self.token_type}, {self.token})', parent=non_terminal)
-                        #     self.get_next_token()
-
-                        # elif word == 'EPSILON':
-                        #     Node('epsilon', parent=non_terminal)
-                        # elif word == 'DOLLAR':
-                        #     Node('$', parent=non_terminal)
-                        # else:
-                        #     #Error
-                        #     self.syntax_errors.append(f'#{self.line_number} : Syntax Error, Missing {word}')
         
 
 
@@ -330,74 +336,12 @@ class LL1Parser:
             for pre, fill, node in RenderTree(self.root):
                 f.write("%s%s\n" % (pre, node.name))
 
-    def write_syntax_errors(self, file_name):
-            with open(file_name, 'w') as syntax_file:
-                if self.syntax_errors:
-                    syntax_file.write('\n'.join(f'#{a} : {b}' for a, b in self.errors))
-                else:
-                    syntax_file.write('There is no syntax error.')
+    def write_syntax_errors(self):
+        input = open('syntax_errors.txt','w')
+        if len(self.syntax_errors)== 0:
+            input.write('There is no syntax error.')
+        else: 
+            for i in self.syntax_errors:
+                input.write(str(i+'\n'))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#     def build_table(self):
-#         for non_terminal, productions in self.grammar.items():
-#             for production in productions:
-#                 first_set = self.get_first_set(production)
-#                 for symbol in first_set:
-#                     if symbol is not 'EPSILON':
-#                         self.table[(non_terminal, symbol)] = production
-
-#                 if 'EPSILON' in first_set :#or ('EPSILON' in self.follow[non_terminal] and non_terminal != 'Program'):
-#                     follow_set = self.follow[non_terminal]
-#                     for symbol in follow_set:
-#                         if symbol is not 'EPSILON':
-#                             self.table[(non_terminal, symbol)] = 'EPSILON'
-
-#     def get_first_set(self, production):
-#         first_set = set()
-#         for symbol in production:
-#             first_set |= set(self.first[symbol])
-#             if 'EPSILON' not in self.first[symbol]:
-#                 break
-#         return first_set
-
-#     def run(self):
-#         self.build_table()
-#         print(self.table)
-
-
-# myprser = LL1Parser()
-# myprser.run()
-
-
-# top_of_stack = ''
-# current_token = scanner.get_next_token()
-# while top_of_stack != '$':
-#     if top_of_stack == current_token:
-#         handle_terminal() # ==> stack.pop() , add token to the parse_tree
-#     else:
-#         error = True
-#         production = top_of_stack
-#         for action in grammar(production):
-#             if current_token in action.firsts():
-#                 handle_action() # ==> stack.pop() , stack.push(action)
-#                 error == false
-#         if error == True:
-#             handle_error()
+        input.close()

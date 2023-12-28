@@ -9,5 +9,5 @@ if __name__ == '__main__':
     #myscanner.run()
     myprser = LL1Parser()
     myprser.run_parser()
-    # myprser.write_syntax_errors('seynax_errors.txt')
+    myprser.write_syntax_errors()
     myprser.write_tree()

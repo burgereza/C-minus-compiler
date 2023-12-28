@@ -103,7 +103,7 @@ class scanner:
       self.lines = self.input.readlines()
       self.lines.append("EOF")
       self.lines[len(self.lines)-2] += '\n'
-      print(self.lines)
+      #print(self.lines)
       self.line_number = 0
       self.cursor = 0
       self.end = True
@@ -124,17 +124,17 @@ class scanner:
        token_type = ''
        char_type,current_char = self.update_char()
        token_string += current_char
-       #print(str(char_type) + ' ------------ ' + current_char)
+       ##print(str(char_type) + ' ------------ ' + current_char)
 
        #get whitespace
        if char_type == 'WHITESPACE':
-          print('@@@@@@@  get whitespace  @@@@@@@')
+          #print('@@@@@@@  get whitespace  @@@@@@@')
           if current_char == '\n': #or self.cursor < len(self.lines[self.line_number]):
-             #print("cursor = " + str(self.cursor) + ' --------- ' + "line number = " + str(self.line_number) , ord(current_char))
+             ##print("cursor = " + str(self.cursor) + ' --------- ' + "line number = " + str(self.line_number) , ord(current_char))
              self.line_number += 1
              self.cursor = 0
           else:
-             #print("cursor = " + str(self.cursor) + ' --------- ' + "line number = " + str(self.line_number) , ord(current_char))
+             ##print("cursor = " + str(self.cursor) + ' --------- ' + "line number = " + str(self.line_number) , ord(current_char))
              if self.cursor < len(self.lines[self.line_number]):
                self.cursor += 1
              else: self.line_number += 1
@@ -142,7 +142,7 @@ class scanner:
 
        #get number
        elif char_type == 'NUM':
-          print('@@@@@@@    get number    @@@@@@@')
+          #print('@@@@@@@    get number    @@@@@@@')
           while True:
             self.cursor += 1
             char_type , current_char = self.update_char()
@@ -150,7 +150,7 @@ class scanner:
                #end of number
                return 'NUM',token_string, '' , self.line_number
             elif char_type != 'NUM':
-               print("char = " + current_char + " ###  char_type = " + char_type)
+               #print("char = " + current_char + " ###  char_type = " + char_type)
                #lexical error
                flag = True
                if char_type == 'UNKNOWN':
@@ -165,11 +165,11 @@ class scanner:
                   token_string += current_char
                   return 'Error',token_string ,'Invalid input', self.line_number
             token_string += current_char
-            #print(token_string)
+            ##print(token_string)
 
        #get id or keyword
        elif char_type == 'ID_OR_KEYWORD':
-          print('@@@@@@@ get id or keyword @@@@@@@')
+          #print('@@@@@@@ get id or keyword @@@@@@@')
           while True:
             self.cursor += 1
             char_type , current_char = self.update_char()
@@ -184,19 +184,19 @@ class scanner:
                self.cursor += 1
                return 'Error', token_string, 'Invalid input',self.line_number
             token_string += current_char
-            #print(token_string)
+            ##print(token_string)
           
        
        #get comment
        elif char_type == 'COMMENT':
-          print('@@@@@@@    get COMMENT    @@@@@@@')
+          #print('@@@@@@@    get COMMENT    @@@@@@@')
           self.cursor += 1
           char_type , current_char = self.update_char()
           if char_type == 'UNKONWN':
              token_string += current_char 
              return 'ERROR', token_string, 'Invalid input',self.line_number
           elif current_char != '*':
-             print(current_char)
+             #print(current_char)
              return 'SYMBOL', '/', '',self.line_number
           else:
              temp = []
@@ -205,7 +205,7 @@ class scanner:
              while True:
                 self.cursor += 1
                 char_type , current_char = self.update_char()
-                print(str(current_char))
+                #print(str(current_char))
 
                 #next line:
                 if current_char == '\n':
@@ -239,9 +239,9 @@ class scanner:
 
        #get symbol
        elif char_type == 'SYMBOL':
-         print('@@@@@@@    get SYMBOL    @@@@@@@')
+         #print('@@@@@@@    get SYMBOL    @@@@@@@')
          self.cursor += 1
-         print("cursor = " + str(self.cursor))
+         #print("cursor = " + str(self.cursor))
          char_type , current_char = self.update_char()
          if token_string == '=':
             if current_char == '=':
@@ -259,13 +259,13 @@ class scanner:
             return 'Error',token_string ,'Invalid input',self.line_number
          else:
             return 'SYMBOL', token_string, 'bfdb',self.line_number
-            #print(token_string)
+            ##print(token_string)
 
       #get unkown
        elif char_type == 'UNKNOWN':
           self.cursor += 1
           return 'Error',token_string ,'Invalid input',self.line_number
-       #print(token_string + '\n')
+       ##print(token_string + '\n')
        #return token_type , token_string
     
 
@@ -280,16 +280,16 @@ class scanner:
        while self.line_number < len(self.lines)-1 :#and self.cursor == len(self.lines[len(self.lines)-1])-1:
           token_type , token , Error, line_number = self.get_next_token()
           #continue
-          print(str(self.line_number) + '     ' + str(len(self.lines)))
+          #print(str(self.line_number) + '     ' + str(len(self.lines)))
           check(token_type,token,Error,(self.line_number+1))
           if Error == "Unclosed comment":
              break
-          #print(token+'_____'+str(self.line_number)+'_____'+ str(self.cursor)+'_____'+str(self.lines[self.line_number][(len(self.lines[self.line_number])-1)]))
+          ##print(token+'_____'+str(self.line_number)+'_____'+ str(self.cursor)+'_____'+str(self.lines[self.line_number][(len(self.lines[self.line_number])-1)]))
           #if index == 20:
           #     break
           #  index += 1
        
-       print('----------------------')
+       #print('----------------------')
        write_lexical_errors()
        write_symbol_table()
        write_tokens() 
