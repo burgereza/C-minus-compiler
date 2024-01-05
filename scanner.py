@@ -119,7 +119,7 @@ class scanner:
     def get_next_token(self):
        #EOF reached:
        if self.line_number >= len(self.lines)-1:
-          return 'DOLLAR','$','EOF_reached',self.line_number
+          return '$','$','EOF_reached',self.line_number
        token_string = ''
        token_type = ''
        char_type,current_char = self.update_char()
@@ -176,13 +176,13 @@ class scanner:
             if char_type == 'WHITESPACE' or char_type == 'SYMBOL':
                #end of identifier
                if token_string in KEYWORDS:
-                  return 'KEYWORD', token_string, '',self.line_number
+                  return 'KEYWORD', token_string , '',self.line_number
                return 'ID', token_string , '',self.line_number
             elif char_type == 'UNKNOWN':
                #lexical error
                token_string += current_char
                self.cursor += 1
-               return 'Error', token_string, 'Invalid input',self.line_number
+               return 'Error', token_string , 'Invalid input',self.line_number
             token_string += current_char
             ##print(token_string)
           
@@ -194,10 +194,10 @@ class scanner:
           char_type , current_char = self.update_char()
           if char_type == 'UNKONWN':
              token_string += current_char 
-             return 'ERROR', token_string, 'Invalid input',self.line_number
+             return 'ERROR', token_string , 'Invalid input',self.line_number
           elif current_char != '*':
              #print(current_char)
-             return 'SYMBOL', '/', '',self.line_number
+             return 'SYMBOL', '/' , '',self.line_number
           else:
              temp = []
              comm_cursor , comm_line = self.cursor , self.line_number
@@ -217,10 +217,10 @@ class scanner:
                    self.cursor = comm_cursor + 2
                    self.line_number = comm_line
                    if self.unclosed_comm == True:
-                      return '','','',self.line_number
+                      return '','' ,'',self.line_number
                    else:
                      self.unclosed_comm = True
-                     return 'Error', "/*" + token_string[1:5] + " ..." , 'Unclosed comment',self.line_number
+                     return 'Error', "/*" + token_string[1:5] + " ..."  , 'Unclosed comment',self.line_number
                    
                 
                 #end of comment:
@@ -229,7 +229,7 @@ class scanner:
                    char_type , current_char = self.update_char()
                    if current_char == '/':
                       self.cursor += 1
-                      return 'COMMENT', '/*' + token_string + '*/', '',self.line_number
+                      return 'COMMENT', '/*' + token_string + '*/' , '',self.line_number
                    else:
                       current_char = '*'
                       self.cursor -= 1
@@ -247,18 +247,18 @@ class scanner:
             if current_char == '=':
                token_string += current_char
                self.cursor += 1
-               return 'SYMBOL', token_string, '',self.line_number
-            return 'SYMBOL', token_string, '',self.line_number
+               return 'SYMBOL', token_string , '',self.line_number
+            return 'SYMBOL', token_string , '',self.line_number
          elif token_string == '*' and current_char == '/':
             self.cursor += 1
-            return 'Error','*/' ,'Unmatched comment',self.line_number
+            return 'Error','*/'  ,'Unmatched comment',self.line_number
          elif char_type == 'UNKNOWN' and (token_string == '=' or token_string == '*' or token_string == '/') :
             #lexical error
             token_string += current_char
             self.cursor += 1
-            return 'Error',token_string ,'Invalid input',self.line_number
+            return 'Error',token_string  ,'Invalid input',self.line_number
          else:
-            return 'SYMBOL', token_string, 'bfdb',self.line_number
+            return 'SYMBOL', token_string , 'bfdb',self.line_number
             ##print(token_string)
 
       #get unkown
