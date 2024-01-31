@@ -2,6 +2,7 @@ from anytree import Node
 from anytree import RenderTree
 import anytree
 from scanner import scanner
+from CodeGen import codeGen
 grammar = {
     
     'Program': [['DeclarationList','$']],
@@ -226,8 +227,11 @@ class LL1Parser:
         self.scanner = scanner('input.txt')
         self.token_type = ''
         self.token = ''
+        self.pre_token = ''
+        self.pre_token_type = ''
         self.line_number = 0
         self.non_terminals = get_keys(grammar)
+        self.code_gen = codeGen()
         #self.unexpected_EOF = False
         
     def is_non_terminal(self , word):
@@ -237,12 +241,14 @@ class LL1Parser:
                 return False
 
     def get_next_token(self):
+        self.pre_token = self.token
+        self.pre_token_type = self.token_type
         while True:
             self.token_type , self.token , Error, self.line_number = self.scanner.get_next_token()
             if self.token_type != 'WHITESPACE' and self.token_type != 'COMMENT' and self.token_type != 'Error':
                 break
-        print('--------------------')
-        print('token: ' + self.token + '    line number: ' + str(self.line_number+1))
+        #print('--------------------')
+        #print('token: ' + self.token + '    line number: ' + str(self.line_number+1))
             
     def run_parser(self):
         self.get_next_token()
@@ -277,10 +283,11 @@ class LL1Parser:
             # top_of_stack = stack.pop()
             # self.root = Node(top_of_stack)
             top_of_stack , parent = stack.pop()
-            # if top_of_stack.startswith('#'):
-            #     codegenerator()
-            #     continue
-            print('top_of_stack: ' + top_of_stack)
+            #call code generator:
+            if top_of_stack.startswith('#'):
+                self.code_gen.handle_action(top_of_stack[1:] , self.pre_token, self.pre_token_type)
+                continue
+            #print('top_of_stack: ' + top_of_stack)
             current_node = Node(top_of_stack)
             current_node.parent = parent
             if parent:
@@ -298,12 +305,12 @@ class LL1Parser:
 
                 if self.token == '$' and top_of_stack != 'DeclarationList':
                     #handle Unexpected EOF
-                    print('-------- unexpected EOF ---------')
-                    print('top of stack: ' + str(top_of_stack))
-                    print('parent: ' + str(parent))
-                    print('token: ' + self.token)
-                    print('token type: ' + self.token_type)
-                    print(stack)
+                    # print('-------- unexpected EOF ---------')
+                    # print('top of stack: ' + str(top_of_stack))
+                    # print('parent: ' + str(parent))
+                    # print('token: ' + self.token)
+                    # print('token type: ' + self.token_type)
+                    # print(stack)
                     self.syntax_errors.append('#' + str(self.line_number + 1) + ' : syntax error, Unexpected EOF')
                     #print('#' + str(self.line_number + 1) + ' : Unexpected EOF')
                     current_node.parent = None
@@ -333,7 +340,7 @@ class LL1Parser:
                     #push to stack
                     for part in reversed(action):
                         stack.append((part , current_node))
-                        print('pushing ' + part + ' to stack')
+                        #print('pushing ' + part + ' to stack')
                     #add to parse tree
                     # for part in (action):
                     #     Node(part , current_node)
@@ -353,25 +360,25 @@ class LL1Parser:
                     #print('currect')
                 
                 elif top_of_stack == '$':
-                    print('------- EOF -------')
-                    print('top of stack: ' + str(top_of_stack))
-                    print('parent: ' + str(parent))
-                    print('token: ' + self.token)
-                    print('token type: ' + self.token_type)
-                    print(stack)
+                    # print('------- EOF -------')
+                    # print('top of stack: ' + str(top_of_stack))
+                    # print('parent: ' + str(parent))
+                    # print('token: ' + self.token)
+                    # print('token type: ' + self.token_type)
+                    # print(stack)
                     Node('$' , parent)
                     break
 
                 else:
                     #missing error:
-                    print('top of stack: ' + str(top_of_stack))
-                    print('parent: ' + str(parent))
-                    print('token: ' + self.token)
-                    print('token type: ' + self.token_type)
-                    print(stack)
+                    # print('top of stack: ' + str(top_of_stack))
+                    # print('parent: ' + str(parent))
+                    # print('token: ' + self.token)
+                    # print('token type: ' + self.token_type)
+                    # print(stack)
                     current_node.parent = None
                     self.syntax_errors.append('#' + str(self.line_number + 1) + ' : syntax error, missing ' + str(top_of_stack))
-                    print('#' + str(self.line_number + 1) + ' : syntax error, missing ' + str(top_of_stack))
+                    #print('#' + str(self.line_number + 1) + ' : syntax error, missing ' + str(top_of_stack))
 
 
     def write_tree(self):
