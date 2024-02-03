@@ -3,12 +3,11 @@
 #Reza Ghamghaam 99170542
 
 from scanner import scanner
-from parser1 import LL1Parser
+from parser2 import LL1Parser2
 if __name__ == '__main__':
     #myscanner = scanner('input.txt')
     #myscanner.run()
-    myprser = LL1Parser()
+    myprser = LL1Parser2()
     myprser.run_parser()
     myprser.write_tree()
     myprser.write_syntax_errors()
-    

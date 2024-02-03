@@ -1,4 +1,4 @@
-from SymbolTable import *
+from SymbolTable2 import *
 from SemanticErrorHandler import SemanticErrorHandler
 
 
@@ -473,8 +473,8 @@ class Subroutines:
 
         self.semantic_stack = self.semantic_stack[:-3]
         self.add_to_program_block(code=f'(JP, {beginning_line}, , )')
-        self.program_block[condition_line] = self.program_block[condition_line].replace('?',
-                                                                                        str(self.program_block_counter))
+        print('condition line is: ' + str(condition_line))
+        self.program_block[condition_line] = self.program_block[condition_line].replace('?', str(self.program_block_counter))
         self.program_block[outer_line] = self.program_block[outer_line].replace('?', str(self.program_block_counter))
 
         self.code_scope_stack.pop()
