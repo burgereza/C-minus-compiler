@@ -75,6 +75,37 @@ class codeGen:
         elif self.action == 'define_function':
             self.define_function()
 
+                        
+            arguments = []
+
+            while self.semantic_stack[(len(self.semantic_stack)-1)] != 'startfun':
+                arguments.append(self.semantic_stack.pop())
+
+            self.semantic_stack.pop()
+            temp_num = self.semantic_stack.pop()
+            temp_type = self.semantic_stack.pop()
+
+            num_arg = len(arguments) // 3
+            if temp_num != 'main':
+                self.program_block.append("(JP, ?, , )")
+                self.semantic_stack.append(len(self.program_block)-1)
+
+            
+            self.scope_stack.append(self.scope_count)
+            temp_symbol= Symbol(lexeme=temp_num, type= temp_type, scope=self.scope_count,type_var='funcation',no_arguments=num_arg
+                                ,address=int(len(self.program_block)) )
+            self.symbol_table.add_symbol(temp_symbol)
+
+            self.scope_count += 1
+            self.scope_stack.append(self.scope_count)
+            arguments=arguments.reverse()
+            for i in range(0,len(arguments),3):
+                name=arguments[i] 
+                ty= arguments[i+1]
+                array = arguments[i+2]
+
+                if  array == 'arr':
+
         elif self.action == 'end_of_scope':
             self.end_of_scope()
 
