@@ -25,6 +25,8 @@ class codeGen:
 
 
         self.program_block.append(f"(ASSIGN, #4, 0, )")
+        self.program_block.append("(JP, ?, , )")
+        self.pb_counter = 3
         
     def get_addres(self,space = 1):
         address = str(self.reg)
@@ -32,14 +34,14 @@ class codeGen:
             self.reg += 4
         return address
 
-    def add_to_pb(self, part1, part2, part3='', part4=''):
-        self.program_block[self.pb_counter] = f'({part1}, {part2}, {part3}, {part4})'
-        self.pb_counter += 1
+    # def add_to_pb(self, part1, part2, part3='', part4=''):
+    #     self.program_block[self.pb_counter] = f'({part1}, {part2}, {part3}, {part4})'
+    #     self.pb_counter += 1
 
     def handle_action(self,action,token):
         self.action = action
         self.token = token
-        print(self.semantic_stack)
+        #print(self.semantic_stack)
         if self.action == 'push_ID':
             self.push_ID()
             self.semantic_stack.append(self.token)
@@ -64,6 +66,7 @@ class codeGen:
         elif self.action == 'push_NUM':
             self.push_NUM()
             self.program_block.append(f'(ASSIGN, #{int(self.token)}, {self.reg}, )')
+            self.pb_counter += 1
             self.reg += self.lentgh_byte
             self.semantic_stack.append(int(self.token))
 
@@ -79,19 +82,24 @@ class codeGen:
             self.reg *= temp_num
             self.symbol_table.add_symbol(temp_symbol)           
 
+
+
         elif self.action == 'define_function':
             self.define_function()
+            print('----------- before function defenition -----------')
+            self.symbol_table.print_symbol_table()
             arguments = []
-            print('self.semantic_stack: ')
-            print(self.semantic_stack)
+            print('self.semantic_stack: ' + str(self.semantic_stack))
+            print('self.program_block: ' + str(self.program_block))
             while self.semantic_stack[-1] != 'startfun':
                 arguments.append(self.semantic_stack.pop())
             self.semantic_stack.pop()
             temp_num = self.semantic_stack.pop()
             temp_type = self.semantic_stack.pop()
             num_arg = len(arguments) // 3
-            if temp_num != 'main':
-                self.program_block.append("(JP, ?, , )")
+
+            if temp_num == 'main':
+                self.program_block[1] = str(self.program_block[1]).replace('?' , str(self.pb_counter))
                 self.semantic_stack.append(len(self.program_block)-1)
 
             
@@ -102,8 +110,6 @@ class codeGen:
 
             self.scope_stack.append(self.scope_stack[-1] + 1)
             arguments.reverse()
-            print('len(arguments): ' + str(len(arguments)))
-            print(arguments)
             for i in range(0,len(arguments),3):
                 ty=arguments[i] 
                 name= arguments[i+1]
@@ -119,6 +125,12 @@ class codeGen:
                     self.symbol_table.add_symbol(temp_symbol)
                     self.reg += self.lentgh_byte
             self.symbol_table.print_symbol_table()
+            print('----------- after function defenition -----------')
+            print('self.semantic_stack: ' + str(self.semantic_stack))
+            print('self.program_block: ' + str(self.program_block))
+
+
+
         elif self.action == 'end_of_scope':
             self.end_of_scope()
             self.symbol_table.delete_scope(self.scope_stack.pop())
@@ -194,6 +206,7 @@ class codeGen:
 
         elif self.action == 'start_function_call':
             self.start_function_call()
+            print()
 
         elif self.action == 'function_call':
             self.function_call()
