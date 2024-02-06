@@ -14,6 +14,7 @@ class SymbolTable:
         self.symbols = list()
         self.start_data = 500
         self.byte_length = 4
+        #self.line_no = 0
 
     def find_address(self, symbol_name):
         for symbol in self.symbols:
@@ -40,3 +41,8 @@ class SymbolTable:
 
     def add_symbol(self, symbol):
         self.symbols.append(symbol)
+
+    def print_symbol_table(self):
+        print('------------  symbol table -----------')
+        for symbol in self.symbols:
+            print('symbol.name: ' + symbol.name + ' symbol.type: ' + symbol.type)

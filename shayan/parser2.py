@@ -292,10 +292,7 @@ class LL1Parser2:
             if top_of_stack.startswith('#'):
                 func_name = top_of_stack[1:]
                 print( str(top_of_stack) + ' ' + self.pre_token)
-                if self.pre_token_type in {'ID', 'NUM'}:
-                    getattr(self.subroutines, func_name)(string=self.pre_token)
-                else:
-                    getattr(self.subroutines, func_name)(string=self.pre_token_type)
+                getattr(self.subroutines, func_name)(string=self.pre_token)
                 continue
             #print('top_of_stack: ' + top_of_stack)
             current_node = Node(top_of_stack)

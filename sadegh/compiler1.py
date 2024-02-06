@@ -11,3 +11,4 @@ if __name__ == '__main__':
     myprser.run_parser()
     #myprser.write_tree()
     #myprser.write_syntax_errors()
+    myprser.write_output()

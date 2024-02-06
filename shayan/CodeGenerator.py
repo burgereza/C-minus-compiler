@@ -321,6 +321,7 @@ class Subroutines:
         if_line = self.semantic_stack[-1]
         self.semantic_stack.pop()
         self.semantic_stack.append(self.program_block_counter - 1)
+        print('33333333333333      if_line.name = ' + if_line.name)
         self.program_block[if_line] = self.program_block[if_line].replace('?', str(self.program_block_counter))
 
     def end_if(self, string):
@@ -462,11 +463,14 @@ class Subroutines:
 
     def while_condition(self, string):
         result = self.find_symbol_address(self.semantic_stack[-1])
+        print('result: ' + result)
+        print('self.semantic_stack[-2] ' + self.semantic_stack[-2] )
         self.semantic_stack.pop()
         self.add_to_program_block(code=f'(JPF, {result}, ?, )')
         self.semantic_stack.append(self.program_block_counter - 1)
 
     def end_while(self, string):
+        print(self.semantic_stack)
         condition_line = self.semantic_stack[-1]
         beginning_line = self.semantic_stack[-2]
         outer_line = self.semantic_stack[-3]

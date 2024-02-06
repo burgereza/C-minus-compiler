@@ -2,54 +2,61 @@ from anytree import Node
 from anytree import RenderTree
 import anytree
 from scanner import scanner
-from CodeGen import codeGen
+import CodeGenerator
+from CodeGenerator import generate_code
+from CodeGenerator import program_block
+import SemanticChecker
+#from Code_gen import Code_gen
+#from codegen import *
+#import codegen
+
 grammar = {
     
     'Program': [['DeclarationList','$']],
-    'DeclarationList' : [['Declaration', 'DeclarationList'],['EPSILON']],
+    'DeclarationList' : [['Declaration', 'DeclarationList'],['EPSILON']], 
     'Declaration' : [['DeclarationInitial',  'DeclarationPrime']],
-    'DeclarationInitial' : [['TypeSpecifier', '#push_type' , 'ID', '#push_ID']],
-    'DeclarationPrime' : [['#start_of_function' ,'FunDeclarationPrime'], ['VarDeclarationPrime']],
-    'VarDeclarationPrime' : [[';' , '#define_variable'],['[', 'NUM' , '#push_NUM', ']', ';', '#define_array']], 
-    'FunDeclarationPrime' : [ ['(', 'Params', ')', '#define_function', 'CompoundStmt', '#end_of_scope', '#end_of_function']],
+    'DeclarationInitial' : [['TypeSpecifier', '#push_type' , 'ID', '#push']],
+    'DeclarationPrime' : [['#start_function' ,'FunDeclarationPrime'], ['VarDeclarationPrime']],
+    'VarDeclarationPrime' : [['#variable_definition',';'],['[', 'NUM' , '#push' , '#define_array', ']', ';']], 
+    'FunDeclarationPrime' : [ ['(', 'Params', ')', '#define_function', 'CompoundStmt', '#END_SCOPE', '#end_function']],
     'TypeSpecifier': [['int'], ['void']],
-    'Params': [['int', '#push_type', 'ID', '#push_ID', 'ParamPrime', 'ParamList'], ['void']],
+    'Params': [['int', '#push', 'ID', '#push', 'ParamPrime', '#add_param', 'ParamList'], ['void']],
     'ParamList': [[',', 'Param', 'ParamList'], ['EPSILON']],
-    'Param': [ ['DeclarationInitial', 'ParamPrime']],
-    'ParamPrime': [['[', ']', '#push_array_type'],['EPSILON', '#push_non_type']] ,
+    'Param': [ ['DeclarationInitial', 'ParamPrime', '#add_param']],
+    'ParamPrime': [['[', ']', '#push_array_input_type'],['EPSILON', '#push_normal_input_type']] ,
     'CompoundStmt': [['{' ,'DeclarationList', 'StatementList', '}']],
-    'StatementList' :[[ 'Statement', 'StatementList'],['EPSILON']],
+    'StatementList' :[[ 'Statement', 'StatementList'],['EPSILON']],  
     'Statement' : [['ExpressionStmt'], ['CompoundStmt'], ['SelectionStmt'], ['IterationStmt' ],['ReturnStmt']],
     'ExpressionStmt' : [['Expression', '#pop',';'], ['break', '#break',';'], [';']],
-    'SelectionStmt' : [['if', '(', 'Expression', '#if', ')', 'Statement', 'else', '#else', 'Statement', '#end_if']],
-    'IterationStmt' :[[ 'while', '(', '#while', 'Expression', ')', '#while_condition', 'Statement', '#end_while']], 
+    'SelectionStmt' : [['if', '(', 'Expression', '#if', ')', 'Statement', 'else', '#else', 'Statement', '#endif']],
+    'IterationStmt' :[[ 'while', '(', '#start_while', 'Expression', ')', '#while_condition', 'Statement', '#endwhile']], 
     'ReturnStmt' :[['return', 'ReturnStmtPrime']],
     'ReturnStmtPrime':[['#return' ,';'],['Expression', '#return_value', ';']],
-    'Expression': [['SimpleExpressionZegond'], ['ID', '#push_ID', 'B']],
-    'B':[[ '=', 'Expression', '#assign'], ['[', 'Expression', ']', '#find_array_address', 'H'], ['SimpleExpressionPrime']],
+    'Expression': [['SimpleExpressionZegond'], ['ID', '#push_id', 'B']],
+    'B':[[ '=', 'Expression', '#assign'], ['[', 'Expression', ']', '#array_access', 'H'], ['SimpleExpressionPrime']],
     'H':[[ '=', 'Expression', '#assign'], ['G', 'D', 'C']],
     'SimpleExpressionZegond': [['AdditiveExpressionZegond', 'C']],
     'SimpleExpressionPrime' : [['AdditiveExpressionPrime', 'C']],
-    'C': [['Relop', 'AdditiveExpression', '#relop'],['EPSILON']],
-    'Relop': [['<', '#LT'],['==', '#EQ']],
+    'C': [['Relop', 'AdditiveExpression', '#relop'],['EPSILON']], 
+    'Relop': [['<', '#push_less_than_comparator'],['==', '#push_is_equal_comparator']], 
     'AdditiveExpression': [['Term', 'D']],
     'AdditiveExpressionPrime': [['TermPrime', 'D']],
     'AdditiveExpressionZegond': [['TermZegond', 'D']],
-    'D': [['Addop', 'Term', '#add_or_sub', 'D'],['EPSILON']],
-    'Addop':[['+', '#add'],['-', '#sub']],
+    'D': [['Addop', 'Term', '#add_or_subtract', 'D'],['EPSILON']], 
+    'Addop':[['+', '#push_addition_operator'],['-', '#push_subtraction_operator']], 
     'Term': [['SignedFactor', 'G']],
     'TermPrime': [['SignedFactorPrime', 'G']],
     'TermZegond':[['SignedFactorZegond', 'G']],
-    'G':[['*', 'SignedFactor', '#mult','G'],['EPSILON']],
+    'G':[['*', 'SignedFactor', '#multiply','G'],['EPSILON']],
     'SignedFactor': [['+' , 'Factor'] , ['-' , 'Factor', '#negate'], ['Factor']],
     'SignedFactorPrime' : [['FactorPrime']],
     'SignedFactorZegond': [['+', 'Factor'] , ['-', 'Factor', '#negate'] , ['FactorZegond']],
-    'Factor':[['(', 'Expression', ')'], ['ID', '#push_ID','VarCallPrime'], ['NUM', '#push_NUM']],
+    'Factor':[['(', 'Expression', ')'], ['ID', '#push_id','VarCallPrime'], ['NUM', '#push_number']],
     'VarCallPrime':[['#start_function_call', '(', 'Args', ')', '#function_call'], ['VarPrime']],
-    'VarPrime':[['[', 'Expression', ']'],['EPSILON']],
-    'FactorPrime':[['(', 'Args', ')'],['EPSILON']],
-    'FactorZegond': [['(', 'Expression', ')'], ['NUM', '#push_NUM']],
-    'Args': [['ArgList'],['EPSILON']],
+    'VarPrime':[['[', 'Expression', ']', '#array_access'],['EPSILON']], 
+    'FactorPrime':[['#start_function_call' ,'(', 'Args', ')' ,'#function_call'],['EPSILON']],  
+    'FactorZegond': [['(', 'Expression', ')'], ['NUM', '#push_number']],
+    'Args': [['ArgList'],['EPSILON']], 
     'ArgList': [['Expression', 'ArgListPrime']],
     'ArgListPrime': [[',', 'Expression', 'ArgListPrime'],['EPSILON']]
 
@@ -229,9 +236,12 @@ class LL1Parser:
         self.token = ''
         self.pre_token = ''
         self.pre_token_type = ''
+        self.pre_top_of_stack = ''
+        self.pre_line_number = 0
         self.line_number = 0
         self.non_terminals = get_keys(grammar)
-        self.code_gen = codeGen()
+        #self.code_gen =  CodeGenerator()
+        #self.code_generator = CodeGenerator()
         #self.unexpected_EOF = False
         
     def is_non_terminal(self , word):
@@ -240,9 +250,11 @@ class LL1Parser:
             else:
                 return False
 
-    def get_next_token(self):
+    def get_next_token(self, top_of_stack):
         self.pre_token = self.token
         self.pre_token_type = self.token_type
+        self.pre_top_of_stack = top_of_stack
+        self.pre_line_number = self.line_number
         while True:
             self.token_type , self.token , Error, self.line_number = self.scanner.get_next_token()
             if self.token_type != 'WHITESPACE' and self.token_type != 'COMMENT' and self.token_type != 'Error':
@@ -251,7 +263,7 @@ class LL1Parser:
         #print('token: ' + self.token + '    line number: ' + str(self.line_number+1))
             
     def run_parser(self):
-        self.get_next_token()
+        self.get_next_token('')
         #print('1:',self.token,'---------------',self.token_type)
         self.parse()
 
@@ -285,7 +297,15 @@ class LL1Parser:
             top_of_stack , parent = stack.pop()
             #call code generator:
             if top_of_stack.startswith('#'):
-                self.code_gen.handle_action(top_of_stack[1:] , self.pre_token)
+                print(top_of_stack + ' ' + self.pre_token + ' ' + self.pre_token_type)
+                #self.code_gen.generate_code(top_of_stack[1:] , self.token)
+                generate_code(action= top_of_stack , label= self.pre_token)
+                # if self.pre_token_type in ['NUM' , 'ID'] and self.pre_top_of_stack == self.pre_token:
+                #     print('1: ' + top_of_stack + ' ' + self.pre_token + ' ' + self.pre_token_type)
+                #     generate_code(action= top_of_stack[1:] , label= self.pre_token)
+                # else:
+                #     print('2: ' + top_of_stack + ' ' + self.pre_token + ' ' + self.pre_token_type)
+                #     generate_code(action= top_of_stack[1:] , label= self.pre_token_type)
                 continue
             #print('top_of_stack: ' + top_of_stack)
             current_node = Node(top_of_stack)
@@ -331,7 +351,7 @@ class LL1Parser:
                     # print('#' + str(self.line_number + 1) + ' : syntax error, illegal ' + str(top_of_stack))
                     stack.append((top_of_stack , parent))
                     current_node.parent = None
-                    self.get_next_token()
+                    self.get_next_token(top_of_stack)
                     
 
 
@@ -351,12 +371,12 @@ class LL1Parser:
                 if top_of_stack in ['NUM' , 'ID'] and self.token_type == top_of_stack:
                     #add to parse tree
                     Node('(' + str(self.token_type) + ', ' + str(self.token) + ')' , parent)
-                    self.get_next_token()
+                    self.get_next_token(top_of_stack)
                 
                 elif (top_of_stack in KEYWORDS or (top_of_stack == '==' or self.scanner.get_token_type(top_of_stack) == 'SYMBOL')) \
                       and self.token == top_of_stack:
                     Node('(' + str(self.token_type) + ', ' + str(self.token) + ')' , parent)
-                    self.get_next_token()
+                    self.get_next_token(top_of_stack)
                     #print('currect')
                 
                 elif top_of_stack == '$':
@@ -393,3 +413,113 @@ class LL1Parser:
         else: 
             for i in self.syntax_errors:
                 input.write(str(i+'\n'))
+
+    def write_output(self):
+        output_file = open(file='output.txt', mode='w', encoding='utf-8')
+        if 1 == 2:
+            output_file.write("The code has not been generated.")
+        else:
+            for line_number, code in program_block.items():
+                print("%s\t%s" % (line_number, code))
+                output_file.write("%s\t%s\n" % (line_number, code))
+                
+
+    # 'Program': [['DeclarationList','$']],
+    # 'DeclarationList' : [['Declaration', 'DeclarationList'],['EPSILON']], 
+    # 'Declaration' : [['DeclarationInitial',  'DeclarationPrime']],
+    # 'DeclarationInitial' : [['TypeSpecifier', '#push_type' , 'ID', '#push']],
+    # 'DeclarationPrime' : [['#start_function' ,'FunDeclarationPrime'], ['VarDeclarationPrime']],
+    # 'VarDeclarationPrime' : [['#variable_definition',';'],['[', 'NUM' , '#push' , '#define_array', ']', ';']], 
+    # 'FunDeclarationPrime' : [ ['(', 'Params', ')', '#define_function', 'CompoundStmt', '#END_SCOPE', '#end_function']],
+    # 'TypeSpecifier': [['int'], ['void']],
+    # 'Params': [['int', '#push', 'ID', '#push', 'ParamPrime', '#add_param', 'ParamList'], ['void']],
+    # 'ParamList': [[',', 'Param', 'ParamList'], ['EPSILON']],
+    # 'Param': [ ['DeclarationInitial', 'ParamPrime', '#add_param']],
+    # 'ParamPrime': [['[', ']', '#push_array_input_type'],['EPSILON', '#push_normal_input_type']] ,
+    # 'CompoundStmt': [['{' ,'DeclarationList', 'StatementList', '}']],
+    # 'StatementList' :[[ 'Statement', 'StatementList'],['EPSILON']],  
+    # 'Statement' : [['ExpressionStmt'], ['CompoundStmt'], ['SelectionStmt'], ['IterationStmt' ],['ReturnStmt']],
+    # 'ExpressionStmt' : [['Expression', '#pop',';'], ['break', '#break',';'], [';']],
+    # 'SelectionStmt' : [['if', '(', 'Expression', '#if', ')', 'Statement', 'else', '#else', 'Statement', '#endif']],
+    # 'IterationStmt' :[[ 'while', '(', '#start_while', 'Expression', ')', '#while_condition', 'Statement', '#endwhile']], 
+    # 'ReturnStmt' :[['return', 'ReturnStmtPrime']],
+    # 'ReturnStmtPrime':[['#return' ,';'],['Expression', '#return_value', ';']],
+    # 'Expression': [['SimpleExpressionZegond'], ['ID', '#push_id', 'B']],
+    # 'B':[[ '=', 'Expression', '#assign'], ['[', 'Expression', ']', '#array_access', 'H'], ['SimpleExpressionPrime']],
+    # 'H':[[ '=', 'Expression', '#assign'], ['G', 'D', 'C']],
+    # 'SimpleExpressionZegond': [['AdditiveExpressionZegond', 'C']],
+    # 'SimpleExpressionPrime' : [['AdditiveExpressionPrime', 'C']],
+    # 'C': [['Relop', 'AdditiveExpression', '#relop'],['EPSILON']], 
+    # 'Relop': [['<', '#push_less_than_comparator'],['==', '#push_is_equal_comparator']], 
+    # 'AdditiveExpression': [['Term', 'D']],
+    # 'AdditiveExpressionPrime': [['TermPrime', 'D']],
+    # 'AdditiveExpressionZegond': [['TermZegond', 'D']],
+    # 'D': [['Addop', 'Term', '#add_or_subtract', 'D'],['EPSILON']], 
+    # 'Addop':[['+', '#push_addition_operator'],['-', '#push_subtraction_operator']], 
+    # 'Term': [['SignedFactor', 'G']],
+    # 'TermPrime': [['SignedFactorPrime', 'G']],
+    # 'TermZegond':[['SignedFactorZegond', 'G']],
+    # 'G':[['*', 'SignedFactor', '#multiply','G'],['EPSILON']],
+    # 'SignedFactor': [['+' , 'Factor'] , ['-' , 'Factor', '#negate'], ['Factor']],
+    # 'SignedFactorPrime' : [['FactorPrime']],
+    # 'SignedFactorZegond': [['+', 'Factor'] , ['-', 'Factor', '#negate'] , ['FactorZegond']],
+    # 'Factor':[['(', 'Expression', ')'], ['ID', '#push_id','VarCallPrime'], ['NUM', '#push_number']],
+    # 'VarCallPrime':[['#start_function_call', '(', 'Args', ')', '#function_call'], ['VarPrime']],
+    # 'VarPrime':[['[', 'Expression', ']', '#array_access'],['EPSILON']], 
+    # 'FactorPrime':[['#start_function_call' ,'(', 'Args', ')' ,'#function_call'],['EPSILON']],  
+    # 'FactorZegond': [['(', 'Expression', ')'], ['NUM', '#push_number']],
+    # 'Args': [['ArgList'],['EPSILON']], 
+    # 'ArgList': [['Expression', 'ArgListPrime']],
+    # 'ArgListPrime': [[',', 'Expression', 'ArgListPrime'],['EPSILON']]
+                
+
+
+
+    # 'Program': [['DeclarationList','$']],
+    # 'DeclarationList' : [['Declaration', 'DeclarationList'],['EPSILON']], 
+    # 'Declaration' : [['DeclarationInitial',  'DeclarationPrime']],
+    # 'DeclarationInitial' : [['TypeSpecifier', '#declare_pid' , 'ID', '#push']],
+    # 'DeclarationPrime' : [['#label','#declare_func' , '#increase_scope','FunDeclarationPrime', '#decrease_scope'], ['VarDeclarationPrime']],
+    # 'VarDeclarationPrime' : [['#declare_var',';'],['[', '#parr_size', 'NUM', ']', '#declare_array', ';']], 
+    # 'FunDeclarationPrime' : [ ['(', 'Params', ')',  'CompoundStmt', '#implicit_return']],
+    # 'TypeSpecifier': [['#ptype_int','int'], ['#ptype_void','void']],
+    # 'Params': [['#ptype_int','int', '#push', '#declare_pid', 'ID', 'ParamPrime', 'ParamList'], ['void']],
+    # 'ParamList': [[',', 'Param', 'ParamList'], ['EPSILON']],
+    # 'Param': [ ['DeclarationInitial', 'ParamPrime']],
+    # 'ParamPrime': [['[', ']', '#declare_pointer_param'],['EPSILON', '#declare_var_param']] ,
+    # 'CompoundStmt': [['{' ,'DeclarationList', 'StatementList', '}']],
+    # 'StatementList' :[[ 'Statement', 'StatementList'],['EPSILON']],  
+    # 'Statement' : [['ExpressionStmt'], ['CompoundStmt'], ['SelectionStmt'], ['IterationStmt' ],['ReturnStmt']],
+    # 'ExpressionStmt' : [['Expression', '#pop',';'], ['break', '#break_jump',';'], [';']],
+    # 'SelectionStmt' : [['if', '(', 'Expression', ')','#save', '#increase_scope', 'Statement', '#decrease_scope', 'else', '#else', 'Statement', '#endif']],
+    # 'IterationStmt' :[[ 'while', '(', '#start_while', 'Expression', ')', '#while_condition', 'Statement', '#endwhile']], 
+    # 'ReturnStmt' :[['return', 'ReturnStmtPrime']],
+    # 'ReturnStmtPrime':[['#return' ,';'],['Expression', '#return_value', ';']],
+    # 'Expression': [['SimpleExpressionZegond'], ['ID', '#push_id', 'B']],
+    # 'B':[[ '=', 'Expression', '#assign'], ['[', 'Expression', ']', '#array_access', 'H'], ['SimpleExpressionPrime']],
+    # 'H':[[ '=', 'Expression', '#assign'], ['G', 'D', 'C']],
+    # 'SimpleExpressionZegond': [['AdditiveExpressionZegond', 'C']],
+    # 'SimpleExpressionPrime' : [['AdditiveExpressionPrime', 'C']],
+    # 'C': [['Relop', 'AdditiveExpression', '#relop'],['EPSILON']], 
+    # 'Relop': [['<', '#push_less_than_comparator'],['==', '#push_is_equal_comparator']], 
+    # 'AdditiveExpression': [['Term', 'D']],
+    # 'AdditiveExpressionPrime': [['TermPrime', 'D']],
+    # 'AdditiveExpressionZegond': [['TermZegond', 'D']],
+    # 'D': [['Addop', 'Term', '#add_or_subtract', 'D'],['EPSILON']], 
+    # 'Addop':[['+', '#push_addition_operator'],['-', '#push_subtraction_operator']], 
+    # 'Term': [['SignedFactor', 'G']],
+    # 'TermPrime': [['SignedFactorPrime', 'G']],
+    # 'TermZegond':[['SignedFactorZegond', 'G']],
+    # 'G':[['*', 'SignedFactor', '#multiply','G'],['EPSILON']],
+    # 'SignedFactor': [['+' , 'Factor'] , ['-' , 'Factor', '#negate'], ['Factor']],
+    # 'SignedFactorPrime' : [['FactorPrime']],
+    # 'SignedFactorZegond': [['+', 'Factor'] , ['-', 'Factor', '#negate'] , ['FactorZegond']],
+    # 'Factor':[['(', 'Expression', ')'], ['ID', '#push_id','VarCallPrime'], ['NUM', '#push_number']],
+    # 'VarCallPrime':[['#start_function_call', '(', 'Args', ')', '#function_call'], ['VarPrime']],
+    # 'VarPrime':[['[', 'Expression', ']', '#array_access'],['EPSILON']], 
+    # 'FactorPrime':[['#start_function_call' ,'(', 'Args', ')' ,'#function_call'],['EPSILON']],  
+    # 'FactorZegond': [['(', 'Expression', ')'], ['NUM', '#push_number']],
+    # 'Args': [['ArgList'],['EPSILON']], 
+    # 'ArgList': [['Expression', 'ArgListPrime']],
+    # 'ArgListPrime': [[',', 'Expression', 'ArgListPrime'],['EPSILON']]
+
