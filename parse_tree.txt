@@ -55,7 +55,16 @@ Program
 │   │               │   │       │   └── CompoundStmt
 │   │               │   │       │       ├── (SYMBOL, {)
 │   │               │   │       │       ├── DeclarationList
-│   │               │   │       │       │   └── epsilon
+│   │               │   │       │       │   ├── Declaration
+│   │               │   │       │       │   │   ├── DeclarationInitial
+│   │               │   │       │       │   │   │   ├── TypeSpecifier
+│   │               │   │       │       │   │   │   │   └── (KEYWORD, int)
+│   │               │   │       │       │   │   │   └── (ID, y)
+│   │               │   │       │       │   │   └── DeclarationPrime
+│   │               │   │       │       │   │       └── VarDeclarationPrime
+│   │               │   │       │       │   │           └── (SYMBOL, ;)
+│   │               │   │       │       │   └── DeclarationList
+│   │               │   │       │       │       └── epsilon
 │   │               │   │       │       ├── StatementList
 │   │               │   │       │       │   ├── Statement
 │   │               │   │       │       │   │   └── ExpressionStmt
@@ -71,7 +80,7 @@ Program
 │   │               │   │       │       │   │       │           │   │   │       ├── Args
 │   │               │   │       │       │   │       │           │   │   │       │   └── ArgList
 │   │               │   │       │       │   │       │           │   │   │       │       ├── Expression
-│   │               │   │       │       │   │       │           │   │   │       │       │   ├── (ID, x)
+│   │               │   │       │       │   │       │           │   │   │       │       │   ├── (ID, y)
 │   │               │   │       │       │   │       │           │   │   │       │       │   └── B
 │   │               │   │       │       │   │       │           │   │   │       │       │       └── SimpleExpressionPrime
 │   │               │   │       │       │   │       │           │   │   │       │       │           ├── AdditiveExpressionPrime
@@ -256,7 +265,7 @@ Program
 │       │               │   │       │                   │   │   │       │       │       │   ├── TermZegond
 │       │               │   │       │                   │   │   │       │       │       │   │   ├── SignedFactorZegond
 │       │               │   │       │                   │   │   │       │       │       │   │   │   └── FactorZegond
-│       │               │   │       │                   │   │   │       │       │       │   │   │       └── (NUM, 0)
+│       │               │   │       │                   │   │   │       │       │       │   │   │       └── (NUM, 5)
 │       │               │   │       │                   │   │   │       │       │       │   │   └── G
 │       │               │   │       │                   │   │   │       │       │       │   │       └── epsilon
 │       │               │   │       │                   │   │   │       │       │       │   └── D

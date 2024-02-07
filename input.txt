@@ -1,7 +1,8 @@
 /*===== Sample 1 =====*/
 int foo(int x){
 	if (x < 5){
-		output(x);
+		int y;
+		output(y);
 		return 1;
 	}
 	else {
@@ -13,7 +14,7 @@ int foo(int x){
 void main(void){
 	int i;
 	int j;
-	i= foo(0);
+	i= foo(5);
 	output(i);
 	j=foo(8);
 	output(j);

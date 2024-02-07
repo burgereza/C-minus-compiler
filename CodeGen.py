@@ -26,7 +26,7 @@ class codeGen:
 
         self.program_block.append(f"(ASSIGN, #4, 0, )")
         self.program_block.append("(JP, ?, , )")
-        self.pb_counter = 3
+        self.pb_counter = 2
         
     def get_addres(self,space = 1):
         address = str(self.reg)
@@ -42,33 +42,47 @@ class codeGen:
         self.action = action
         self.token = token
         #print(self.semantic_stack)
+
         if self.action == 'push_ID':
             self.push_ID()
             self.semantic_stack.append(self.token)
+
 
         elif self.action == 'push_type':
             self.push_type()
             self.semantic_stack.append(self.token)
 
+
         elif self.action == 'start_of_function':
             self.start_of_function()
             self.semantic_stack.append('startfun')
+
 
         elif self.action == 'define_variable':
             self.define_variable() 
 
             name = self.semantic_stack.pop()
             temp_type = self.semantic_stack.pop()     
-            temp_symbol = Symbol(lexeme= name,type=temp_type,address=self.reg ,scope=self.scope_stack[(-1)],
+            temp_symbol = Symbol(name= name,type=temp_type,address=self.reg ,scope=self.scope_stack[(-1)],
                                  type_var='var',no_arguments=0,line_pb=len(self.program_block)-1)
             self.symbol_table.add_symbol(temp_symbol)
             self.reg += self.lentgh_byte
+
+
         elif self.action == 'push_NUM':
             self.push_NUM()
+            #print('push num touched with num: ' + self.token)
+            self.symbol_table.print_symbol_table()
             self.program_block.append(f'(ASSIGN, #{int(self.token)}, {self.reg}, )')
             self.pb_counter += 1
-            self.reg += self.lentgh_byte
+            address = self.get_addres(space=1)
+            #print("str(self.token): " + str(self.token))
+            temp_symbol = Symbol(name= str(self.token) , type='int' ,address=address ,scope=self.scope_stack[-1],
+                                 type_var='var',no_arguments=0,line_pb=len(self.program_block)-1)
+            self.symbol_table.add_symbol(temp_symbol)
             self.semantic_stack.append(int(self.token))
+            self.symbol_table.print_symbol_table()
+
 
         elif self.action == 'define_array':
             self.define_array()
@@ -77,20 +91,19 @@ class codeGen:
             temp_id = self.semantic_stack.pop()
             temp_type = self.semantic_stack.pop()
 
-            temp_symbol = Symbol(lexeme= temp_id,type=temp_type,address=self.reg ,scope=self.scope_stack[(len(scope_stack) - 1)],
+            temp_symbol = Symbol(name= temp_id,type=temp_type,address=self.reg ,scope=self.scope_stack[(len(scope_stack) - 1)],
                                  type_var='arr',no_arguments=temp_num,line_pb=len(self.program_block)-1)
             self.reg *= temp_num
             self.symbol_table.add_symbol(temp_symbol)           
-
 
 
         elif self.action == 'define_function':
             self.define_function()
             print('----------- before function defenition -----------')
             self.symbol_table.print_symbol_table()
-            arguments = []
             print('self.semantic_stack: ' + str(self.semantic_stack))
             print('self.program_block: ' + str(self.program_block))
+            arguments = []
             while self.semantic_stack[-1] != 'startfun':
                 arguments.append(self.semantic_stack.pop())
             self.semantic_stack.pop()
@@ -99,13 +112,14 @@ class codeGen:
             num_arg = len(arguments) // 3
 
             if temp_num == 'main':
+                
                 self.program_block[1] = str(self.program_block[1]).replace('?' , str(self.pb_counter))
                 self.semantic_stack.append(len(self.program_block)-1)
 
             
             self.scope_stack.append(self.scope_stack[-1] + 1)
-            temp_symbol= Symbol(lexeme=temp_num, type= temp_type, scope=self.scope_stack[len(self.scope_stack)-1] ,
-                                type_var='funcation',no_arguments=num_arg,address=int(len(self.program_block)) )
+            temp_symbol= Symbol(name=temp_num, type= temp_type, scope=self.scope_stack[len(self.scope_stack)-1] ,
+                                type_var='function',no_arguments=num_arg,address=int(len(self.program_block)) )
             self.symbol_table.add_symbol(temp_symbol)
 
             self.scope_stack.append(self.scope_stack[-1] + 1)
@@ -116,11 +130,11 @@ class codeGen:
                 array = arguments[i+2]
 
                 if  array == 'arr':
-                    temp_symbol= Symbol(lexeme=name, type= ty, scope=self.scope_stack[len(self.scope_stack)-1]
+                    temp_symbol= Symbol(name=name, type= ty, scope=self.scope_stack[len(self.scope_stack)-1]
                         ,type_var='arr',no_arguments=0,address=int(len(self.program_block)) )
                     self.symbol_table.add_symbol(temp_symbol)
                 else:
-                    temp_symbol= Symbol(lexeme=name, type= ty, scope=self.scope_stack[len(self.scope_stack)-1]
+                    temp_symbol= Symbol(name=name, type= ty, scope=self.scope_stack[len(self.scope_stack)-1]
                         ,type_var='var',no_arguments=0,address=self.reg )
                     self.symbol_table.add_symbol(temp_symbol)
                     self.reg += self.lentgh_byte
@@ -130,86 +144,281 @@ class codeGen:
             print('self.program_block: ' + str(self.program_block))
 
 
-
         elif self.action == 'end_of_scope':
             self.end_of_scope()
             self.symbol_table.delete_scope(self.scope_stack.pop())
 
+
+        elif self.action == 'start_function_call':
+            self.start_function_call()
+            self.semantic_stack.append(self.pb_counter + 1)
+
+
+        elif self.action == 'function_call':
+            self.function_call()
+            if self.semantic_stack[-2] == 'output':
+                output1 = self.semantic_stack.pop()
+                output2 = self.semantic_stack.pop()
+                # print('output2: ' + output2)
+                # print('output1: ' + output1)
+                symbol = self.symbol_table.find_address(output1)
+                self.program_block.append(f'(PRINT, {symbol.address}, , )')
+                self.pb_counter += 1
+            else:
+                func_addr = ''
+                for i in range (len(self.semantic_stack)):
+                    temp = self.semantic_stack[-i-1]
+                    symbol = self.symbol_table.find_address(temp)
+                    if symbol != None:
+                        if symbol.type_var == 'function':
+                            func_addr = symbol.address
+                            break
+                self.program_block.append(f'(JP, {func_addr}, , )')
+            self.symbol_table.print_symbol_table()
+            print('------------ function call -------------')
+            print('self.semantic_stack: ' + str(self.semantic_stack))
+            print('self.program_block: ' + str(self.program_block))
+
+
         elif self.action == 'end_of_function':
             self.end_of_function()
+            self.symbol_table.print_symbol_table()
+            print('------------ end of function -------------')
+            print('self.semantic_stack: ' + str(self.semantic_stack))
+            print('self.program_block: ' + str(self.program_block))
+            func_addr = self.semantic_stack[-2]
+            self.program_block.append(f'(JP, {func_addr}, , )')
+            self.pb_counter += 1
+            a = self.semantic_stack.pop()
+            self.semantic_stack.pop()
+            self.semantic_stack.append(a)
+
+        # [ .... , calee_name , caller_address , return_value ]
+        # [ .... ,     foo    ,       45       ,      9       ]
 
         elif self.action == 'push_array_type':
             self.push_array_type()
             self.semantic_stack.append('arr')
 
+
         elif self.action == 'push_non_type':
             self.push_non_type()
             self.semantic_stack.append('nothing')
+
 
         elif self.action == 'pop':
             self.pop()
             self.semantic_stack.pop()
 
+
         elif self.action == 'if':
             self.if_stmt()
+            #print('%', self.semantic_stack[-1])
+            result_symbol = self.symbol_table.find_address(self.semantic_stack[-1])
+            self.semantic_stack.pop()
+            self.program_block.append(f'(JPF, {result_symbol.address}, ?, )')
+            self.pb_counter += 1
+            self.semantic_stack.append(self.pb_counter - 1)
+            
             
         elif self.action == 'else':
             self.else_stmt()
+            self.program_block.append(f'(JP, ?, , )')
+            self.pb_counter += 1
+            if_line = int(self.semantic_stack[-1])
+            self.semantic_stack.pop()
+            self.semantic_stack.append(self.pb_counter - 1)
+            #print('33333333333333      if_line.name = ' + if_line.name)
+            self.program_block[if_line] = self.program_block[if_line].replace('?', str(self.pb_counter))
+
 
         elif self.action == 'end_if':
             self.end_if()
+            self.symbol_table.print_symbol_table()
+            print('------------ end if  -------------')
+            print('self.semantic_stack: ' + str(self.semantic_stack))
+            print('self.program_block: ' + str(self.program_block))
+            
+            else_line = int((self.semantic_stack[-1]))
+            print('else_line: ' + str(else_line))
+            self.semantic_stack.pop()
+            self.program_block[else_line] = self.program_block[else_line].replace('?', str(self.pb_counter))
+
 
         elif self.action == 'while':
             self.while_stmt()
+            #self.code_scope_stack.append(('while', len(self.semantic_stack)))
+            self.scope_stack.append(self.scope_stack[-1] + 1)
+            self.program_block.append(f"(JP, {self.pb_counter + 2}, , )")
+            self.pb_counter += 1
+            self.semantic_stack.append(self.pb_counter)
+            self.program_block.append("(JP, ?, , )")
+            self.pb_counter += 1
+            self.semantic_stack.append(self.pb_counter)
+
 
         elif self.action == 'while_condition':
             self.while_condition()     
+            result_symbol = self.symbol_table.find_address(self.semantic_stack[-1])
+            #print('result_symbol: ' + result_symbol)
+            #print('self.semantic_stack[-2]: ' + self.semantic_stack[-2] )
+            self.semantic_stack.pop()
+            self.program_block.append(f'(JPF, {result_symbol.address}, ?, )')
+            self.pb_counter += 1
+            self.semantic_stack.append(self.pb_counter - 1)
+
 
         elif self.action == 'end_while':
             self.end_while()     
+            #print(self.semantic_stack)
+            condition_line = int(self.semantic_stack[-1])
+            beginning_line = int(self.semantic_stack[-2])
+            outer_line = int(self.semantic_stack[-3])
+            self.semantic_stack = self.semantic_stack[:-3]
+            self.program_block.append(f'(JP, {beginning_line}, , )')
+            self.pb_counter += 1
+            #print('condition line is: ' + str(condition_line))
+            self.program_block[condition_line] = self.program_block[condition_line].replace('?', str(self.pb_counter))
+            self.program_block[outer_line] = self.program_block[outer_line].replace('?', str(self.pb_counter))
+            self.symbol_table.delete_scope(self.scope_stack.pop())
+
 
         elif self.action == 'return':
             self.return_stmt()    
+            #self.semantic_stack.append('nothing')
+
 
         elif self.action == 'return_value':
-            self.return_value()    
+            self.return_value()
+            self.semantic_stack.pop()
+
 
         elif self.action == 'assign':
-            self.assign()     
+            a = self.symbol_table.find_address(self.semantic_stack.pop())
+            b = self.symbol_table.find_address(self.semantic_stack[-1])
+            self.program_block.append(f"(ASSIGN, {a}, {b}, )")
+            self.pb_counter += 1
+            
 
         elif self.action == 'find_array_address':
             self.find_array_address()   
+            a = self.symbol_table.find_address(self.self.semantic_stack.pop())
+            b = self.symbol_table.find_address(self.self.semantic_stack.pop())
+
+            address = self.get_addres(space=1)
+            
+            temp_symbol = Symbol(name = '$result' , address=address,scope=self.scope_stack[-1],type_var='var'
+                                 ,no_arguments=0,line_pb=0) 
+            self.symbol_table.add_symbol(temp_symbol)
+            self.semantic_stack.append(temp_symbol.name)
+            
+            self.program_block.append(f"(ADD, {b.address}, {a.address}, @{address})")
+            self.pb_counter += 1
+
 
         elif self.action == 'relop':
-            self.relop()    
+            self.relop() 
+            self.symbol_table.print_symbol_table()
+            # print('self.semantic_stack: ' + str(self.semantic_stack))
+            # print('self.program_block: ' + str(self.program_block))
+            b = self.symbol_table.find_address(str(self.semantic_stack.pop()))
+            op = (self.semantic_stack.pop())
+            a = self.symbol_table.find_address(str(self.semantic_stack.pop()))
+
+            address = self.get_addres(space=1)
+            # print('a: ' + str(a))
+            # print('b: ' + str(b))
+            self.program_block.append(f'({op}, {a.address}, {b.address}, {address})')
+            self.pb_counter += 1
+            
+            temp_symbol = Symbol(name = '$result', type= 'int' , address=address,scope=self.scope_stack[-1],type_var='var'
+                                 ,no_arguments=0,line_pb=0) 
+            self.symbol_table.add_symbol(temp_symbol)
+            self.semantic_stack.append(temp_symbol.name)
+            # self.symbol_table.print_symbol_table()
+            # print('self.semantic_stack: ' + str(self.semantic_stack))
+            # print('self.program_block: ' + str(self.program_block))   
+            # b = self.semantic_stack.pop()
+            # print('b= ' + str(b))
+            # relation = self.semantic_stack.pop()
+            # a = self.symbol_table.find_address(self.semantic_stack.pop())
+            # address = self.get_addres(space=1)
+            # temp_symbol = Symbol(name = '$relop_result' , type= 'int' , address=address ,scope=self.scope_stack[-1],type_var='var'
+            #                      ,no_arguments=0,line_pb=0) 
+            # print('a.name= ' + str(a.name))
+            # if relation == 'LT':
+            #     if int(a.name) < int(b):
+            #         temp_symbol.name = '1'
+            #     else:
+            #         temp_symbol.name = '0'
+            # else:
+            #     if int(a.name) == int(b):
+            #         temp_symbol.name = '1'
+            #     else:
+            #         temp_symbol.name = '0'
+            # self.semantic_stack.append(temp_symbol.name)
+            
 
         elif self.action == 'LT':
-            self.LT() 
+            self.LT()
+            self.semantic_stack.append('LT') 
+
 
         elif self.action == 'EQ':
             self.EQ()      
-            
+            self.semantic_stack.append('EQ')
+
+
         elif self.action == 'add_or_sub':
             self.add_or_sub()     
+            a = self.symbol_table.find_address(str(self.semantic_stack.pop()))
+            op =(self.semantic_stack.pop())
+            b = self.symbol_table.find_address(str(self.semantic_stack.pop()))
+
+            address = self.get_addres(space=1)
+
+            self.program_block.append(f'({op}, {a.address}, {b.address}, {address})')
+            self.pb_counter += 1
+            
+            temp_symbol = Symbol(name = '$result', type= 'int' , address=address,scope=self.scope_stack[-1],type_var='var'
+                                 ,no_arguments=0,line_pb=0) 
+            self.symbol_table.add_symbol(temp_symbol)
+            self.semantic_stack.append(temp_symbol.name)
+
 
         elif self.action == 'add':
             self.add()    
+            self.semantic_stack.append('ADD')
+
 
         elif self.action == 'sub':
             self.sub()    
+            self.semantic_stack.append('SUB')
+
 
         elif self.action == 'mult':
             self.mult()    
+            a = self.symbol_table.find_address(self.semantic_stack.pop())
+            b = self.symbol_table.find_address(self.semantic_stack.pop())
+
+            address = self.get_addres(space=1)
+
+            self.program_block.append(f'(MULT, {a.address}, {b.address}, {address})')
+            self.pb_counter += 1
+            
+            temp_symbol = Symbol(name = '$result' , address=address,scope=self.scope_stack[-1],type_var='var'
+                                 ,no_arguments=0,line_pb=0) 
+            self.symbol_table.add_symbol(temp_symbol)
+            self.semantic_stack.append(temp_symbol.name)
+
 
         elif self.action == 'negate':
             self.negate()  
+            a = self.semantic_stack.pop()
+            self.semantic_stack.append(str(-a))
 
-        elif self.action == 'start_function_call':
-            self.start_function_call()
-            print()
+        
 
-        elif self.action == 'function_call':
-            self.function_call()
 
             
 

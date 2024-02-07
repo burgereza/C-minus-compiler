@@ -1,20 +1,22 @@
 class Symbol:
-    def __init__(self, name, type, address, scope, type_var ,no_arguments=0,line_pb=0):
+    def __init__(self, name, variable_type, address_type, address, scope, symbol_type, arguments_count=0):
         self.name = name
-        self.type = type
+        self.variable_type = variable_type
+        self.address_type = address_type
         self.address = address
         self.scope = scope
-        self.no_arguments = no_arguments
-        self.line_pb = 0
-        self.type_var = type_var
+        self.symbol_type = symbol_type
+        self.arguments_count = arguments_count
 
 
 class SymbolTable:
     def __init__(self):
         self.symbols = list()
-        self.start_data = 500
+        self.st_pointer = 100
+        self.start_temp = 3000
+        self.start_data = 20000
         self.byte_length = 4
-        #self.line_no = 0
+        self.return_address = 10
 
     def find_address(self, symbol_name):
         for symbol in self.symbols:
@@ -41,8 +43,3 @@ class SymbolTable:
 
     def add_symbol(self, symbol):
         self.symbols.append(symbol)
-
-    def print_symbol_table(self):
-        print('------------  symbol table -----------')
-        for symbol in self.symbols:
-            print('symbol.name: ' + str(symbol.name) + ' symbol.type: ' + str(symbol.type) + ' sembol.type_var: ' + str(symbol.type_var))

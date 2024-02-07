@@ -47,7 +47,7 @@ grammar = {
     'Factor':[['(', 'Expression', ')'], ['ID', '#push_ID','VarCallPrime'], ['NUM', '#push_NUM']],
     'VarCallPrime':[['#start_function_call', '(', 'Args', ')', '#function_call'], ['VarPrime']],
     'VarPrime':[['[', 'Expression', ']'],['EPSILON']],
-    'FactorPrime':[['(', 'Args', ')'],['EPSILON']],
+    'FactorPrime':[['#start_function_call', '(', 'Args', ')', '#function_call'],['EPSILON']],
     'FactorZegond': [['(', 'Expression', ')'], ['NUM', '#push_NUM']],
     'Args': [['ArgList'],['EPSILON']],
     'ArgList': [['Expression', 'ArgListPrime']],
