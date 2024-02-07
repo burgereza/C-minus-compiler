@@ -417,7 +417,10 @@ class codeGen:
             a = self.semantic_stack.pop()
             self.semantic_stack.append(str(-a))
 
-        
+    def save_program(self):
+        with open('output.txt', 'w') as f:
+            for i in range(self.program_block):
+                f.write(f'{i}\t{self.program_block[i]}\n')
 
 
             
