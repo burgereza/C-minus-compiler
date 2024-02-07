@@ -20,7 +20,7 @@ grammar = {
     'CompoundStmt': [['{' ,'DeclarationList', 'StatementList', '}']],
     'StatementList' :[[ 'Statement', 'StatementList'],['EPSILON']],
     'Statement' : [['ExpressionStmt'], ['CompoundStmt'], ['SelectionStmt'], ['IterationStmt' ],['ReturnStmt']],
-    'ExpressionStmt' : [['Expression', '#pop',';'], ['break', '#break',';'], [';']],
+    'ExpressionStmt' : [['Expression',';' , '#pop'], ['break', '#break',';'], [';']],
     'SelectionStmt' : [['if', '(', 'Expression', '#if', ')', 'Statement', 'else', '#else', 'Statement', '#end_if']],
     'IterationStmt' :[[ 'while', '(', '#while', 'Expression', ')', '#while_condition', 'Statement', '#end_while']], 
     'ReturnStmt' :[['return', 'ReturnStmtPrime']],
@@ -393,3 +393,6 @@ class LL1Parser:
         else: 
             for i in self.syntax_errors:
                 input.write(str(i+'\n'))
+
+    def save_program(self):
+        self.code_gen.save_program()

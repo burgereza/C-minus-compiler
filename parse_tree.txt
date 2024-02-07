@@ -55,16 +55,7 @@ Program
 │   │               │   │       │   └── CompoundStmt
 │   │               │   │       │       ├── (SYMBOL, {)
 │   │               │   │       │       ├── DeclarationList
-│   │               │   │       │       │   ├── Declaration
-│   │               │   │       │       │   │   ├── DeclarationInitial
-│   │               │   │       │       │   │   │   ├── TypeSpecifier
-│   │               │   │       │       │   │   │   │   └── (KEYWORD, int)
-│   │               │   │       │       │   │   │   └── (ID, y)
-│   │               │   │       │       │   │   └── DeclarationPrime
-│   │               │   │       │       │   │       └── VarDeclarationPrime
-│   │               │   │       │       │   │           └── (SYMBOL, ;)
-│   │               │   │       │       │   └── DeclarationList
-│   │               │   │       │       │       └── epsilon
+│   │               │   │       │       │   └── epsilon
 │   │               │   │       │       ├── StatementList
 │   │               │   │       │       │   ├── Statement
 │   │               │   │       │       │   │   └── ExpressionStmt
@@ -80,7 +71,7 @@ Program
 │   │               │   │       │       │   │       │           │   │   │       ├── Args
 │   │               │   │       │       │   │       │           │   │   │       │   └── ArgList
 │   │               │   │       │       │   │       │           │   │   │       │       ├── Expression
-│   │               │   │       │       │   │       │           │   │   │       │       │   ├── (ID, y)
+│   │               │   │       │       │   │       │           │   │   │       │       │   ├── (ID, x)
 │   │               │   │       │       │   │       │           │   │   │       │       │   └── B
 │   │               │   │       │       │   │       │           │   │   │       │       │       └── SimpleExpressionPrime
 │   │               │   │       │       │   │       │           │   │   │       │       │           ├── AdditiveExpressionPrime

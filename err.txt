@@ -1,0 +1,10 @@
+--->  PC = 0 command : 0	(ASSIGN, #4, 0, )
+--->  memory[0] = 4
+--->  PC = 1 command : 1	(JP, 16, , )
+--->  PC = 16 command : 16	(ASSIGN, #0, 532, )
+--->  memory[532] = 0
+--->  PC = 17 command : 17	(ASSIGN, #0, 536, )
+--->  memory[536] = 0
+--->  PC = 18 command : 18	(ASSIGN, #5, 540, )
+--->  memory[540] = 5
+--->  PC = 19 command : 19	(ASSIGN, 512, 508, )

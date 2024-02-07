@@ -130,6 +130,15 @@ class Subroutines:
     def function_call_start(self, string):
         self.semantic_stack.append("function_call_start")
 
+
+
+
+
+
+
+
+        
+
     def function_return(self, string):
         self.close_function()
 

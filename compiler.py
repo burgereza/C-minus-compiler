@@ -10,5 +10,6 @@ if __name__ == '__main__':
     myprser = LL1Parser()
     myprser.run_parser()
     myprser.write_tree()
+    myprser.save_program()
     #myprser.write_syntax_errors()
 

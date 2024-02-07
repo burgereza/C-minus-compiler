@@ -16,28 +16,25 @@ class SymbolTable:
         self.byte_length = 4
         #self.line_no = 0
 
+    def find_result(self, result):
+        l = len(self.symbols) 
+        for i in range(l):
+            temp_symbol = self.symbols[l-i]
+            if temp_symbol.name == str(result):
+                #del self.symbols[l-i]
+                return temp_symbol
+        return None
+
     def find_address(self, symbol_name):
         for symbol in self.symbols:
             if symbol.name == symbol_name:
                 return symbol
         return None
 
-    def get_temp(self):
-        self.start_temp += self.byte_length
-        return self.start_temp - self.byte_length
-
     def delete_scope(self, scope):
         for symbol in self.symbols:
             if symbol.scope == scope:
                 self.symbols.remove(symbol)
-
-    def get_global(self):
-        self.start_data += self.byte_length
-        return self.start_data - self.byte_length
-
-    def make_space(self, value):
-        self.start_data += int(value) * self.byte_length
-        return self.start_data - int(value) * self.byte_length
 
     def add_symbol(self, symbol):
         self.symbols.append(symbol)
@@ -45,4 +42,10 @@ class SymbolTable:
     def print_symbol_table(self):
         print('------------  symbol table -----------')
         for symbol in self.symbols:
-            print('symbol.name: ' + str(symbol.name) + ' symbol.type: ' + str(symbol.type) + ' sembol.type_var: ' + str(symbol.type_var))
+            print('symbol.name: ' + str(symbol.name) + '   symbol.address: ' + str(symbol.address))
+        print('--------------------------------------')
+
+    def get_func(self , addr):
+        for symbol in self.symbols:
+            if symbol.address == addr:
+                return symbol.no_arguments

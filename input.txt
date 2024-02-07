@@ -1,8 +1,7 @@
 /*===== Sample 1 =====*/
 int foo(int x){
 	if (x < 5){
-		int y;
-		output(y);
+		output(x);
 		return 1;
 	}
 	else {
